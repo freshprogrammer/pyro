@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro", "Pyro\Pyro\Pyro.csproj", "{3EAE9D61-28A6-44CF-9E4F-8F2FC2F69D30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroContent", "Pyro\PyroContent\PyroContent.contentproj", "{5D225DF8-822E-48C4-AC9D-50595A9C92BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreshGameLibrary", "..\FreshGameLibrary\FreshGameLibrary\FreshGameLibrary.csproj", "{D603FD00-0C1E-4846-845A-74FD5B97F1A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3EAE9D61-28A6-44CF-9E4F-8F2FC2F69D30}.Debug|x86.ActiveCfg = Debug|x86
+		{3EAE9D61-28A6-44CF-9E4F-8F2FC2F69D30}.Debug|x86.Build.0 = Debug|x86
+		{3EAE9D61-28A6-44CF-9E4F-8F2FC2F69D30}.Release|x86.ActiveCfg = Release|x86
+		{3EAE9D61-28A6-44CF-9E4F-8F2FC2F69D30}.Release|x86.Build.0 = Release|x86
+		{5D225DF8-822E-48C4-AC9D-50595A9C92BA}.Debug|x86.ActiveCfg = Debug|x86
+		{5D225DF8-822E-48C4-AC9D-50595A9C92BA}.Release|x86.ActiveCfg = Release|x86
+		{D603FD00-0C1E-4846-845A-74FD5B97F1A0}.Debug|x86.ActiveCfg = Debug|x86
+		{D603FD00-0C1E-4846-845A-74FD5B97F1A0}.Debug|x86.Build.0 = Debug|x86
+		{D603FD00-0C1E-4846-845A-74FD5B97F1A0}.Release|x86.ActiveCfg = Release|x86
+		{D603FD00-0C1E-4846-845A-74FD5B97F1A0}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
