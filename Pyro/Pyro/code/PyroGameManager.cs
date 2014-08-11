@@ -8,9 +8,9 @@ using Archives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
-namespace Snake
+namespace Pyro
 {
-    class DrMarioGameManager : ObjectManager
+    class PyroGameManager : ObjectManager
     {
         //constant control variables
         public const int SlotSize = 45;
@@ -80,7 +80,7 @@ namespace Snake
             GravityStep,
         }
 
-        public DrMarioGameManager()
+        public PyroGameManager()
             : base()
         {
             random = new Random();
@@ -218,14 +218,14 @@ namespace Snake
         public void SpawnVirus(int x, int y, PillColor color)
         {
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
-            DrMarioGameObjectFactory factory = (DrMarioGameObjectFactory)sSystemRegistry.GameObjectFactory;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            DrMarioGameGameObjectTypes virusType;
+            PyroGameGameObjectTypes virusType;
             switch (color)
             {
-                case PillColor.Red: virusType = DrMarioGameGameObjectTypes.Red_Virus; break;
-                case PillColor.Green: virusType = DrMarioGameGameObjectTypes.Green_Virus; break;
-                case PillColor.Blue: virusType = DrMarioGameGameObjectTypes.Blue_Virus; break;
+                case PillColor.Red: virusType = PyroGameGameObjectTypes.Red_Virus; break;
+                case PillColor.Green: virusType = PyroGameGameObjectTypes.Green_Virus; break;
+                case PillColor.Blue: virusType = PyroGameGameObjectTypes.Blue_Virus; break;
                 default: throw new Exception("currently only supports " + ColorCodeCount + " color viruses");
             }
 
@@ -255,9 +255,9 @@ namespace Snake
         {
 
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
-            DrMarioGameObjectFactory factory = (DrMarioGameObjectFactory)sSystemRegistry.GameObjectFactory;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            DrMarioGameGameObjectTypes pillObjectType = GetPillTypeFromColorCode(color);
+            PyroGameGameObjectTypes pillObjectType = GetPillTypeFromColorCode(color);
             GameObject pillGameObject = factory.SpawnPill(screenX, screenY, pillObjectType);
             manager.Add(pillGameObject);
 
@@ -266,7 +266,7 @@ namespace Snake
 
         private void ProcessInput(float gameTime)
         {
-            PlayerController input = DrMarioGame.PlayerController;
+            PlayerController input = PyroGame.PlayerController;
             if (input.LeftPressed && !lastInput.LeftPressed)
             {
                 //Move Left Pressed
@@ -305,7 +305,7 @@ namespace Snake
                 RotateActivePillSet(true);
             }
 
-            lastInput = DrMarioGame.PlayerController.Snapshot();
+            lastInput = PyroGame.PlayerController.Snapshot();
         }
 
         public void ProcessActivePills(Point pt)
@@ -517,13 +517,13 @@ namespace Snake
             return false;
         }
 
-        public DrMarioGameGameObjectTypes GetPillTypeFromColorCode(PillColor colorCode)
+        public PyroGameGameObjectTypes GetPillTypeFromColorCode(PillColor colorCode)
         {
             switch (colorCode)
             {
-                case PillColor.Red: return DrMarioGameGameObjectTypes.Red_Pill;
-                case PillColor.Green: return DrMarioGameGameObjectTypes.Green_Pill;
-                case PillColor.Blue: return DrMarioGameGameObjectTypes.Blue_Pill;
+                case PillColor.Red: return PyroGameGameObjectTypes.Red_Pill;
+                case PillColor.Green: return PyroGameGameObjectTypes.Green_Pill;
+                case PillColor.Blue: return PyroGameGameObjectTypes.Blue_Pill;
                 default: throw new Exception("currently only supports " + ColorCodeCount + " color Pills");
             }
         }
@@ -1098,7 +1098,7 @@ namespace Snake
             position.Y += yDif;
             if (Pill != null)
             {
-                Pill.SetPosition(DrMarioGameManager.GetSlotLocation(position));
+                Pill.SetPosition(PyroGameManager.GetSlotLocation(position));
             }
         }
 
@@ -1114,14 +1114,14 @@ namespace Snake
 
             if (Pill != null)
             {
-                Pill.SetPosition(DrMarioGameManager.GetSlotLocation(position));
+                Pill.SetPosition(PyroGameManager.GetSlotLocation(position));
             }
         }
 
         public void Kill()
         {
             SetPillEnd(PillEnd.Dead);
-            Pill.FindByType<LifetimeComponent>().SetTimeUntilDeath(DrMarioGameObjectFactory.DeathAnimationDuration);
+            Pill.FindByType<LifetimeComponent>().SetTimeUntilDeath(PyroGameObjectFactory.DeathAnimationDuration);
         }
 
         public void KillImedietly()
@@ -1179,7 +1179,7 @@ namespace Snake
             Type = src.Type;
             src.EmptySlot();
 
-            Pill.SetPosition(DrMarioGameManager.GetSlotLocation(X, Y));
+            Pill.SetPosition(PyroGameManager.GetSlotLocation(X, Y));
         }
 
         public override string ToString()

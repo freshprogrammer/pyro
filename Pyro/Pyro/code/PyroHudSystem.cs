@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Snake
+namespace Pyro
 {
-    class DrMarioHudSystem : HudSystem
+    class PyroHudSystem : HudSystem
     {
         private StringRenderObject levelTitle;
         private StringRenderObject level;
@@ -112,19 +112,19 @@ namespace Snake
                     scoreTitle.Update(secondsDelta, this);
                     highScoreTitle.Update(secondsDelta, this);
 
-                    score.SetText(DrMarioGameManager.Score.ToString());
+                    score.SetText(PyroGameManager.Score.ToString());
                     score.Update(secondsDelta, this);
 
-                    highScore.SetText(DrMarioGameManager.HighScore.ToString());
+                    highScore.SetText(PyroGameManager.HighScore.ToString());
                     highScore.Update(secondsDelta, this);
 
-                    level.SetText(DrMarioGameManager.LevelNo.ToString());
+                    level.SetText(PyroGameManager.LevelNo.ToString());
                     level.Update(secondsDelta, this);
 
-                    speed.SetText(DrMarioGameManager.GetSpeedName(DrMarioGameManager.Speed));
+                    speed.SetText(PyroGameManager.GetSpeedName(PyroGameManager.Speed));
                     speed.Update(secondsDelta, this);
 
-                    virus.SetText(DrMarioGameManager.RemainingViruses.ToString());
+                    virus.SetText(PyroGameManager.RemainingViruses.ToString());
                     virus.Update(secondsDelta, this);
                 }
             }

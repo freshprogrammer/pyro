@@ -1,4 +1,4 @@
-//#define DeveleperModeEnabled
+#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -14,14 +14,14 @@ using Microsoft.Xna.Framework.Media;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Snake
+namespace Pyro
 {
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class DrMarioGame : Microsoft.Xna.Framework.Game, IFreshGame
+    public class PyroGame : Microsoft.Xna.Framework.Game, IFreshGame
     {
-        private const string settingsFilePath = @"Content\scripts\default.conf";
+        private const string settingsFilePath = @"Content\scripts\defaults.conf";
         private VariablesFile settingsFile;
 
         enum FPSMode
@@ -112,7 +112,7 @@ namespace Snake
         //private SoundEffectInstance menuMusicVollumeTest;
         //private int menuMusicVollumeTestID = -1;
         private bool menuWrapSelection = false;
-        private string menuTitle = "Dr Fresh Mario";
+        private string menuTitle = "Pyro Menu Default";
         private int menuTitleHeight = 150;
         private float menuTransitionTime = 1;
         private Menu pauseMenu;
@@ -122,7 +122,7 @@ namespace Snake
         private ObjectManager gameRoot;
         private RenderSystem renderSystem;
         private GameObjectManager gameManager;
-        private DrMarioGameManager drMarioManager;
+        private PyroGameManager pyroManager;
         private LevelSystem levelSystem;
         private GameObjectFactory objectFactory;
 
@@ -130,7 +130,7 @@ namespace Snake
         private int newGameLevelNo = 0;
         private int newGameSpeedValue = 1;
 
-        public DrMarioGame()
+        public PyroGame()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -190,7 +190,7 @@ namespace Snake
             //BaseObject.sSystemRegistry.inputGameInterface = inputInterface;
 
             levelSystem = new LevelSystem();
-            levelSystem.LoadOneLevel(new DrMarioLevel());
+            levelSystem.LoadOneLevel(new PyroLevel());
             BaseObject.sSystemRegistry.LevelSystem = levelSystem;
 
             CollisionSystem collision = new CollisionSystem();
@@ -202,10 +202,10 @@ namespace Snake
             gameManager = new GameObjectManager(paramaters.GameWidth * 1.3f, MaxObjects);//TODO put right number here (activation radius, object max count)
             BaseObject.sSystemRegistry.GameObjectManager = gameManager;
 
-            drMarioManager = new DrMarioGameManager();
+            pyroManager = new PyroGameManager();
 
             //factory was removed from the registry for generalazation reasons
-            objectFactory = new DrMarioGameObjectFactory();
+            objectFactory = new PyroGameObjectFactory();
             BaseObject.sSystemRegistry.GameObjectFactory = objectFactory;
             objectFactory.PreloadEffects();
 
@@ -237,7 +237,7 @@ namespace Snake
             BaseObject.sSystemRegistry.DrawableFactory = new DrawableFactory(MaxObjects);
             BaseObject.sSystemRegistry.DebugSystem = new DebugSystem(Content);
 
-            DrMarioHudSystem hud = new DrMarioHudSystem();
+            PyroHudSystem hud = new PyroHudSystem();
             hud.Setup();
             BaseObject.sSystemRegistry.HudSystem = hud;
 
@@ -268,7 +268,7 @@ namespace Snake
             gameRoot = new MainLoop();
             //gameRoot.add(inputInterface);
             gameRoot.Add(gameManager);
-            gameRoot.Add(drMarioManager);
+            gameRoot.Add(pyroManager);
             gameRoot.Add(camera);
             gameRoot.Add(dynamicCollision);
             gameRoot.Add(hud);
@@ -505,7 +505,7 @@ namespace Snake
             MenuItem newGameSpeed = new MenuItem("");
             newGameSpeed.ChangeLeftCallbackAction  = MenuItem_NewGameSpeedDown;
             newGameSpeed.ChangeRightCallbackAction = MenuItem_NewGameSpeedUp;
-            newGameSpeed.SetName("Speed: " + code, code, DrMarioGameManager.GetSpeedName(newGameSpeedValue));
+            newGameSpeed.SetName("Speed: " + code, code, PyroGameManager.GetSpeedName(newGameSpeedValue));
             MenuItem startGameItem = new MenuItem("Start Game", MenuItem_NewGame);
             Menu newGameMenu = mainMenuTree.CreateMenu(new MenuItem[] { newGameLevel, newGameSpeed, startGameItem });
 
@@ -578,7 +578,7 @@ namespace Snake
             newGameSpeedValue--;
             if (newGameSpeedValue < 0)
                 newGameSpeedValue = 2;
-            parent.SetNameDetail(DrMarioGameManager.GetSpeedName(newGameSpeedValue));
+            parent.SetNameDetail(PyroGameManager.GetSpeedName(newGameSpeedValue));
         }
 
         private void MenuItem_NewGameSpeedUp(MenuItem parent)
@@ -586,7 +586,7 @@ namespace Snake
             newGameSpeedValue++;
             if (newGameSpeedValue > 2)
                 newGameSpeedValue = 0;
-            parent.SetNameDetail(DrMarioGameManager.GetSpeedName(newGameSpeedValue));
+            parent.SetNameDetail(PyroGameManager.GetSpeedName(newGameSpeedValue));
         }
 
         private void MenuItem_Debug_ShowVersion(MenuItem parent)
@@ -876,7 +876,7 @@ namespace Snake
             VariablesFile gameVariablesFile = new VariablesFile(gameVariablesPath, null, true);
             VariableLibrary gameVars = gameVariablesFile.variables;
 
-            DrMarioGameObjectFactory factory = (DrMarioGameObjectFactory)BaseObject.sSystemRegistry.GameObjectFactory;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)BaseObject.sSystemRegistry.GameObjectFactory;
             factory.LoadSettings(gameVars);
         }
 
@@ -914,7 +914,7 @@ namespace Snake
             BaseObject.sSystemRegistry.CameraSystem.SetFocusPosition(BaseObject.sSystemRegistry.ContextParameters.GameWidth / 2, BaseObject.sSystemRegistry.ContextParameters.GameHeight / 2);
             BaseObject.sSystemRegistry.CameraSystem.ExternalControl = true;
 
-            drMarioManager.StartGame(newGameLevelNo, newGameSpeedValue);
+            pyroManager.StartGame(newGameLevelNo, newGameSpeedValue);
             
             gameState = GameStates.MainLoop;
         }

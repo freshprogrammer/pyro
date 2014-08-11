@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 
-namespace Snake
+namespace Pyro
 {
-    public class DrMarioGameObjectFactory : GameObjectFactory
+    public class PyroGameObjectFactory : GameObjectFactory
     {
         private SoundEffect pistolSound;
         private SoundEffect playerHitSound;
@@ -20,7 +20,7 @@ namespace Snake
 
         public const float DeathAnimationDuration = 0.25f;
 
-        public DrMarioGameObjectFactory()
+        public PyroGameObjectFactory()
             : base()
         {
         }
@@ -62,7 +62,7 @@ namespace Snake
         protected override void InitializeStaticData()
         {
             //instanciate static data
-            int objectTypeCount = Enum.GetValues(typeof(DrMarioGameGameObjectTypes)).Length;
+            int objectTypeCount = Enum.GetValues(typeof(PyroGameGameObjectTypes)).Length;
             mStaticData = new FixedSizeArray<FixedSizeArray<BaseObject>>(objectTypeCount);
 
             for (int x = 0; x < objectTypeCount; x++)
@@ -149,7 +149,7 @@ namespace Snake
         {
             const int width = 1280;
             const int height = 720;
-            int type = (int)DrMarioGameGameObjectTypes.Background_Plate;
+            int type = (int)PyroGameGameObjectTypes.Background_Plate;
             GameObject result = mGameObjectPool.Allocate();
             result.SetPosition(positionX, positionY);
             result.ActivationRadius = mActivationRadiusExtraWide;
@@ -188,18 +188,18 @@ namespace Snake
             return result;
         }
 
-        public GameObject SpawnVirus(float positionX, float positionY, DrMarioGameGameObjectTypes virusType)
+        public GameObject SpawnVirus(float positionX, float positionY, PyroGameGameObjectTypes virusType)
         {
             //safty check
-            if (virusType != DrMarioGameGameObjectTypes.Blue_Virus && virusType != DrMarioGameGameObjectTypes.Red_Virus && virusType != DrMarioGameGameObjectTypes.Green_Virus)
+            if (virusType != PyroGameGameObjectTypes.Blue_Virus && virusType != PyroGameGameObjectTypes.Red_Virus && virusType != PyroGameGameObjectTypes.Green_Virus)
                 throw new Exception("Failed to spawn Virus " + virusType);
 
             int thisGameObjectType = (int)virusType;
             GameObject result = mGameObjectPool.Allocate();
             result.SetPosition(positionX, positionY);
             result.ActivationRadius = mActivationRadiusTight;
-            result.width = DrMarioGameManager.SlotSize;
-            result.height = DrMarioGameManager.SlotSize;
+            result.width = PyroGameManager.SlotSize;
+            result.height = PyroGameManager.SlotSize;
             result.DestroyOnDeactivation = true;
 
             result.life = 1;
@@ -223,15 +223,15 @@ namespace Snake
                 idle.Loop = true;
                 switch (virusType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Virus:
+                    case PyroGameGameObjectTypes.Blue_Virus:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay, crop));
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus2"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Virus:
+                    case PyroGameGameObjectTypes.Green_Virus:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\green_Virus"), animationDelay, crop));
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\green_Virus2"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Virus:
+                    case PyroGameGameObjectTypes.Red_Virus:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\red_Virus"), animationDelay, crop));
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\red_Virus2"), animationDelay, crop));
                         break;
@@ -245,9 +245,9 @@ namespace Snake
                 SpriteAnimation death = new SpriteAnimation((int)Animations.Death, animationFrameCount);
                 switch (virusType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Virus:
-                    case DrMarioGameGameObjectTypes.Green_Virus:
-                    case DrMarioGameGameObjectTypes.Red_Virus:
+                    case PyroGameGameObjectTypes.Blue_Virus:
+                    case PyroGameGameObjectTypes.Green_Virus:
+                    case PyroGameGameObjectTypes.Red_Virus:
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop));
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop));
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop));
@@ -273,7 +273,7 @@ namespace Snake
             SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
             sprite.SetSize((int)result.width, (int)result.height);
             sprite.SetRenderComponent(render);
-            sprite.SetSize(DrMarioGameManager.SlotSize, DrMarioGameManager.SlotSize);
+            sprite.SetSize(PyroGameManager.SlotSize, PyroGameManager.SlotSize);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
 
@@ -288,18 +288,18 @@ namespace Snake
             return result;
         }
 
-        public GameObject SpawnPill(float positionX, float positionY, DrMarioGameGameObjectTypes pillType)
+        public GameObject SpawnPill(float positionX, float positionY, PyroGameGameObjectTypes pillType)
         {
             //safty check
-            if (pillType != DrMarioGameGameObjectTypes.Blue_Pill && pillType != DrMarioGameGameObjectTypes.Red_Pill && pillType != DrMarioGameGameObjectTypes.Green_Pill)
+            if (pillType != PyroGameGameObjectTypes.Blue_Pill && pillType != PyroGameGameObjectTypes.Red_Pill && pillType != PyroGameGameObjectTypes.Green_Pill)
                 throw new Exception("Failed to spawn Pill " + pillType);
 
             int thisGameObjectType = (int)pillType;
             GameObject result = mGameObjectPool.Allocate();
             result.SetPosition(positionX, positionY);
             result.ActivationRadius = mActivationRadiusTight;
-            result.width = DrMarioGameManager.SlotSize;
-            result.height = DrMarioGameManager.SlotSize;
+            result.width = PyroGameManager.SlotSize;
+            result.height = PyroGameManager.SlotSize;
             result.DestroyOnDeactivation = true;
             
             result.life = 1;
@@ -322,13 +322,13 @@ namespace Snake
                 SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red"), animationDelay, crop));
                         break;
                 }
@@ -336,13 +336,13 @@ namespace Snake
                 SpriteAnimation top = new SpriteAnimation((int)Animations.Big_Top, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
                         top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_top"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
                         top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_top"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_top"), animationDelay, crop));
                         break;
                 }
@@ -350,13 +350,13 @@ namespace Snake
                 SpriteAnimation bottom = new SpriteAnimation((int)Animations.Big_Bottom, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
                         bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_bottom"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
                         bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_bottom"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_bottom"), animationDelay, crop));
                         break;
                 }
@@ -364,13 +364,13 @@ namespace Snake
                 SpriteAnimation right = new SpriteAnimation((int)Animations.Big_Right, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
                         right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_right"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
                         right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_right"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_right"), animationDelay, crop));
                         break;
                 }
@@ -378,13 +378,13 @@ namespace Snake
                 SpriteAnimation left = new SpriteAnimation((int)Animations.Big_Left, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
                         left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_left"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
                         left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_left"), animationDelay, crop));
                         break;
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_left"), animationDelay, crop));
                         break;
                 }
@@ -397,9 +397,9 @@ namespace Snake
                 SpriteAnimation death = new SpriteAnimation((int)Animations.Death, animationFrameCount);
                 switch (pillType)
                 {
-                    case DrMarioGameGameObjectTypes.Blue_Pill:
-                    case DrMarioGameGameObjectTypes.Green_Pill:
-                    case DrMarioGameGameObjectTypes.Red_Pill:
+                    case PyroGameGameObjectTypes.Blue_Pill:
+                    case PyroGameGameObjectTypes.Green_Pill:
+                    case PyroGameGameObjectTypes.Red_Pill:
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death0"), animationDelay, crop));
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death1"), animationDelay, crop));
                         death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death2"), animationDelay, crop));
@@ -426,7 +426,7 @@ namespace Snake
             SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
             sprite.SetSize((int)result.width, (int)result.height);
             sprite.SetRenderComponent(render);
-            sprite.SetSize(DrMarioGameManager.SlotSize, DrMarioGameManager.SlotSize);
+            sprite.SetSize(PyroGameManager.SlotSize, PyroGameManager.SlotSize);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
 
@@ -478,7 +478,7 @@ namespace Snake
             return solidSurface;
         }
     }
-    public enum DrMarioGameGameObjectTypes
+    public enum PyroGameGameObjectTypes
     {
         //these first values must match those in the generic GameObjectTypes
         Invalid = -1,

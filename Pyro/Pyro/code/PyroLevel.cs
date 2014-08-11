@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using Archives;
 
-namespace Snake
+namespace Pyro
 {
-    class DrMarioLevel : Level
+    class PyroLevel : Level
     {
         //would be stored as a list of object types (int type ID) at a location - maybe be addition info like resource count or team ID
         //List<Ro
@@ -46,7 +46,7 @@ namespace Snake
 
         public override void SpawnObjects()
         {
-            DrMarioGameObjectFactory factory = (DrMarioGameObjectFactory)sSystemRegistry.GameObjectFactory;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
 
             manager.Add(factory.SpawnBackgroundPlate(0, 0));

@@ -1,6 +1,6 @@
 using System;
 
-namespace Snake
+namespace Pyro
 {
 #if WINDOWS || XBOX
     static class Program
@@ -10,7 +10,7 @@ namespace Snake
         /// </summary>
         static void Main(string[] args)
         {
-            using (DrMarioGame game = new DrMarioGame())
+            using (PyroGame game = new PyroGame())
             {
                 game.Run();
             }

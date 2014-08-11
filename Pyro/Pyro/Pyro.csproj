@@ -108,11 +108,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="code\DrMarioGame.cs" />
-    <Compile Include="code\DrMarioGameManager.cs" />
-    <Compile Include="code\DrMarioGameObjectFactory.cs" />
-    <Compile Include="code\DrMarioHudSystem.cs" />
-    <Compile Include="code\DrMarioLevel.cs" />
+    <Compile Include="code\PyroGame.cs" />
+    <Compile Include="code\PyroGameManager.cs" />
+    <Compile Include="code\PyroGameObjectFactory.cs" />
+    <Compile Include="code\PyroHudSystem.cs" />
+    <Compile Include="code\PyroLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
@@ -123,6 +123,11 @@
     <ProjectReference Include="..\..\..\FreshGameLibrary\FreshGameLibrary\FreshGameLibrary.csproj">
       <Project>{D603FD00-0C1E-4846-845A-74FD5B97F1A0}</Project>
       <Name>FreshGameLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PyroContent\PyroContent.contentproj">
+      <Project>{5D225DF8-822E-48C4-AC9D-50595A9C92BA}</Project>
+      <Name>PyroContent %28Content%29</Name>
+      <XnaReferenceType>Content</XnaReferenceType>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
