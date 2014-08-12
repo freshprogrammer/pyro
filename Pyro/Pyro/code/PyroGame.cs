@@ -314,7 +314,7 @@ namespace Pyro
 
             //background pic
             //backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
-            backgroundPic = Content.Load<Texture2D>(@"pics\background");
+            //backgroundPic = Content.Load<Texture2D>(@"pics\background");
             menuSelectorPic = Content.Load<Texture2D>(@"pics\misc\menuSelector");
 
             //load sounds

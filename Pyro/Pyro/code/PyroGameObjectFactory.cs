@@ -210,31 +210,17 @@ namespace Pyro
                 staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
 
                 // Animation Data
-                //Idle
-                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 1);
-                idle.Loop = false;
                 float animationDelay = 0.16f;
-
-                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_idleNN_01"), animationDelay));
-
-                //Attack
-                SpriteAnimation attack = new SpriteAnimation((int)Animations.Attack, 3);
-                attack.Loop = true;
-                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_01"), animationDelay));
-                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_02"), animationDelay));
-                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_03"), animationDelay));
-
-                //Attack
-                SpriteAnimation move = new SpriteAnimation((int)Animations.Move, 2);
-                move.Loop = true;
-                move.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_moveNN_01"), animationDelay));
-                move.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_moveNN_02"), animationDelay));
+                //Idle
+                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 3);
+                idle.Loop = true;
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_01"), animationDelay));
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_02"), animationDelay));
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_03"), animationDelay));
 
                 //animations
                 staticData.Add(idle);
-                staticData.Add(attack);
-                staticData.Add(move);
-
+                
                 SetStaticData(thisGameObjectType, staticData);
             }
 
