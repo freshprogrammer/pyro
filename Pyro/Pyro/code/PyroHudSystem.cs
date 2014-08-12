@@ -8,6 +8,7 @@ namespace Pyro
 {
     class PyroHudSystem : HudSystem
     {
+        /*
         private StringRenderObject levelTitle;
         private StringRenderObject level;
         private StringRenderObject speedTitle;
@@ -20,11 +21,12 @@ namespace Pyro
         private StringRenderObject highScore;
 
         private float scale = 2f;
+        */
 
         public override void Setup()
         {
             Reset();
-            
+            /*
             int rightXOffset = 950;
             int rightXSubOffset = rightXOffset + 32 * 9;
             int rightYOffset = 400;
@@ -90,12 +92,12 @@ namespace Pyro
             score.RightAligned = true;
             score.Priority = SortConstants.HUD;
             score.SetPosition(leftXSubOffset, leftYOffset + verticalSeperation + verticalSubSeperation);
-            score.SetScale(scale, scale);
+            score.SetScale(scale, scale);*/
         }
 
         public override void Reset()
         {
-            Enabled = true;
+            Enabled = false;
         }
 
         public override void Update(float secondsDelta, BaseObject parent)
@@ -105,6 +107,7 @@ namespace Pyro
                 GameObjectManager manager = sSystemRegistry.GameObjectManager;
                 if (manager != null)
                 {
+                    /*
                     //update to render
                     levelTitle.Update(secondsDelta, this);
                     virusTitle.Update(secondsDelta, this);
@@ -126,6 +129,7 @@ namespace Pyro
 
                     virus.SetText(PyroGameManager.RemainingViruses.ToString());
                     virus.Update(secondsDelta, this);
+                    */
                 }
             }
         }

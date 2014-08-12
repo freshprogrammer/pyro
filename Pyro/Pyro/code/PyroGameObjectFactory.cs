@@ -173,7 +173,7 @@ namespace Pyro
             }
 
             Rectangle crop = new Rectangle(0, 0, width, height);
-            DrawableTexture2D textureDrawable = new DrawableTexture2D(content.Load<Texture2D>(@"pics\background2"), (int)result.width, (int)result.height);
+            DrawableTexture2D textureDrawable = new DrawableTexture2D(content.Load<Texture2D>(@"pics\misc\cherry-wood_small"), (int)result.width, (int)result.height);
             textureDrawable.SetCrop(crop);
 
             RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
