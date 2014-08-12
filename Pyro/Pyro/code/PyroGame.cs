@@ -1,4 +1,4 @@
-#define DeveleperModeEnabled
+//#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -314,7 +314,7 @@ namespace Pyro
 
             //background pic
             //backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
-            backgroundPic = Content.Load<Texture2D>(@"pics\background");
+            //backgroundPic = Content.Load<Texture2D>(@"pics\background");
             menuSelectorPic = Content.Load<Texture2D>(@"pics\misc\menuSelector");
 
             //load sounds
@@ -498,21 +498,9 @@ namespace Pyro
             vibrationItem.SetName("Vibration CODE", "CODE", BaseObject.sSystemRegistry.VibrationSystem.IsEnabled(PlayerIndex.One) ? "Enabled" : "Disabled");
             Menu optionsMenu = mainMenuTree.CreateMenu(new MenuItem[] { soundItem, vibrationItem, fullScreenItem });//will be populated with updateSoundMenu method - any text here would be duplicated
 
-            MenuItem newGameLevel = new MenuItem("");
-            newGameLevel.ChangeLeftCallbackAction = MenuItem_NewGameLevelDown;
-            newGameLevel.ChangeRightCallbackAction = MenuItem_NewGameLevelUp;
-            newGameLevel.SetName("Level: " + code, code, newGameLevelNo.ToString());
-            MenuItem newGameSpeed = new MenuItem("");
-            newGameSpeed.ChangeLeftCallbackAction  = MenuItem_NewGameSpeedDown;
-            newGameSpeed.ChangeRightCallbackAction = MenuItem_NewGameSpeedUp;
-            newGameSpeed.SetName("Speed: " + code, code, PyroGameManager.GetSpeedName(newGameSpeedValue));
-            MenuItem startGameItem = new MenuItem("Start Game", MenuItem_NewGame);
-            Menu newGameMenu = mainMenuTree.CreateMenu(new MenuItem[] { newGameLevel, newGameSpeed, startGameItem });
-
             MenuItem[] mainItems;
-            MenuItem newGameItem = new MenuItem("New Game", newGameMenu);
+            MenuItem newGameItem = new MenuItem("New Game", MenuItem_NewGame);
             MenuItem optionsItem = new MenuItem("Options", optionsMenu);
-            MenuItem aboutItem = new MenuItem("About"); //TODO add credits animaition script
             MenuItem exitItem = new MenuItem("Exit", SystemExit, null);
 
 #if DeveleperModeEnabled
@@ -520,7 +508,7 @@ namespace Pyro
                 mainItems = new MenuItem[] { newGameItem, optionsItem, aboutItem, exitItem, debugMenuItem };
             else
 #endif
-            mainItems = new MenuItem[] { newGameItem, optionsItem, aboutItem, exitItem };
+            mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem };
             mainMenu = mainMenuTree.CreateMenu(mainItems);
 
 
@@ -927,7 +915,7 @@ namespace Pyro
             ///continue...
             MediaPlayer.Stop();
             MediaPlayer.Play(backgroundGameMusic);
-            MediaPlayer.IsRepeating = true;
+            MediaPlayer.IsRepeating = true ;
 
             //BUG reset systems - like vibration - playerInput - gameEvents
             gameState = GameStates.LoadingLevel;
@@ -1076,8 +1064,6 @@ namespace Pyro
         {
             //PlayerController.MovementDir = new Vector2(0, 0);
             Point moveDir = Point.Zero;
-            bool rotLeftPressed = false;
-            bool rotRightPressed = false;
 
             if (controllerInputEnabled)
             {
@@ -1094,11 +1080,6 @@ namespace Pyro
                     moveDir.X += -1;
                 if (gamePad.IsButtonDown(Buttons.DPadRight) || gamePad.IsButtonDown(Buttons.LeftThumbstickRight))
                     moveDir.X += 1;
-
-                if (gamePad.Buttons.A == ButtonState.Pressed || gamePad.Buttons.X == ButtonState.Pressed)
-                    rotLeftPressed = true;
-                if (gamePad.Buttons.B == ButtonState.Pressed || gamePad.Buttons.Y == ButtonState.Pressed)
-                    rotRightPressed = true;
             }
 
 
@@ -1124,12 +1105,6 @@ namespace Pyro
                     case Keys.Right:
                         moveDir.X += 1;
                         break;
-                    case Keys.Z:
-                        rotLeftPressed = true;
-                        break;
-                    case Keys.X:
-                        rotRightPressed = true;
-                        break;
                 }
             }
 
@@ -1143,8 +1118,6 @@ namespace Pyro
                 moveDir.Y = 1;
 
             PlayerController.MovementDir = moveDir;
-            PlayerController.RotLeftPressed = rotLeftPressed;
-            PlayerController.RotRightPressed = rotRightPressed;
         }
 
         private void UpdateAllInput()
@@ -1440,8 +1413,6 @@ namespace Pyro
             {
                 {
                     Profiler.Start();
-
-                    BaseObject.sSystemRegistry.HudSystem.Enabled = true;
 
                     UpdateAllInput();
 
@@ -1805,22 +1776,16 @@ namespace Pyro
         public bool LeftPressed { get { return MovementDir.X == -1; } }
 
         public Point MovementDir = Point.Zero;
-        public bool RotLeftPressed = false;
-        public bool RotRightPressed = false;
 
         public void Reset()
         {
             MovementDir = Point.Zero;
-            RotLeftPressed = false;
-            RotRightPressed = false;
         }
 
         public PlayerController Snapshot()
         {
             PlayerController result = new PlayerController();
             result.MovementDir = MovementDir;
-            result.RotLeftPressed = RotLeftPressed;
-            result.RotRightPressed = RotRightPressed;
             return result;
         }
     }
