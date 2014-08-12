@@ -117,8 +117,7 @@ namespace Pyro
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
             PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            PyroGameGameObjectTypes pillObjectType = PyroGameGameObjectTypes.Green_Pill;
-            GameObject playerGameObject = factory.SpawnPill(screenX, screenY, pillObjectType);
+            GameObject playerGameObject = factory.SpawnPlayer(screenX, screenY);
             manager.Add(playerGameObject);
 
             playerSlot.Setup(GameSlotType.Pill, playerGameObject);
@@ -194,6 +193,8 @@ namespace Pyro
             if (IsCloseSlotEmpty(xDif, yDif, slot))
             {
                 slot.Move(xDif, yDif);
+                slot.Child.facingDirection.X = xDif;
+                slot.Child.facingDirection.Y = yDif;
                 return true;
             }
             return false;

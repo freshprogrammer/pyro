@@ -62,7 +62,7 @@ namespace Pyro
         protected override void InitializeStaticData()
         {
             //instanciate static data
-            int objectTypeCount = Enum.GetValues(typeof(PyroGameGameObjectTypes)).Length;
+            int objectTypeCount = Enum.GetValues(typeof(PyroGameObjectTypes)).Length;
             mStaticData = new FixedSizeArray<FixedSizeArray<BaseObject>>(objectTypeCount);
 
             for (int x = 0; x < objectTypeCount; x++)
@@ -149,7 +149,7 @@ namespace Pyro
         {
             const int width = 1280;
             const int height = 720;
-            int type = (int)PyroGameGameObjectTypes.Background_Plate;
+            int type = (int)PyroGameObjectTypes.Background_Plate;
             GameObject result = mGameObjectPool.Allocate();
             result.SetPosition(positionX, positionY);
             result.ActivationRadius = mActivationRadiusExtraWide;
@@ -188,252 +188,71 @@ namespace Pyro
             return result;
         }
 
-        public GameObject SpawnVirus(float positionX, float positionY, PyroGameGameObjectTypes virusType)
+        public GameObject SpawnPlayer(float positionX, float positionY)
         {
-            //safty check
-            if (virusType != PyroGameGameObjectTypes.Blue_Virus && virusType != PyroGameGameObjectTypes.Red_Virus && virusType != PyroGameGameObjectTypes.Green_Virus)
-                throw new Exception("Failed to spawn Virus " + virusType);
-
-            int thisGameObjectType = (int)virusType;
+            int thisGameObjectType = (int)PyroGameObjectTypes.Player;
             GameObject result = mGameObjectPool.Allocate();
             result.SetPosition(positionX, positionY);
-            result.ActivationRadius = mActivationRadiusTight;
-            result.width = PyroGameManager.SlotSize;
-            result.height = PyroGameManager.SlotSize;
-            result.DestroyOnDeactivation = true;
+            result.ActivationRadius = mActivationRadius_AlwaysActive;
+            result.width = 32;
+            result.height = 32;
 
             result.life = 1;
+            result.team = GameObject.Team.PLAYER;
+
 
             FixedSizeArray<BaseObject> staticData = GetStaticData(thisGameObjectType);
 
             if (staticData == null)
             {
                 ContentManager content = sSystemRegistry.Game.Content;
-                int staticObjectCount = 2;
+                int staticObjectCount = 3;
                 staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
 
                 // Animation Data
-                Rectangle crop = new Rectangle(0, 0, (int)result.width, (int)result.height);
                 //Idle
-                float animationDuration = 1f;
-                int animationFrameCount = 2;
-                float animationDelay = animationDuration / animationFrameCount;
+                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 1);
+                idle.Loop = false;
+                float animationDelay = 0.16f;
 
-                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, animationFrameCount);
-                idle.Loop = true;
-                switch (virusType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Virus:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay, crop));
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus2"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Virus:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\green_Virus"), animationDelay, crop));
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\green_Virus2"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Virus:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\red_Virus"), animationDelay, crop));
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\red_Virus2"), animationDelay, crop));
-                        break;
-                }
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_idleNN_01"), animationDelay));
 
-                //Death
-                animationDuration = DeathAnimationDuration;
-                animationFrameCount = 7;
-                animationDelay = animationDuration / animationFrameCount;
+                //Attack
+                SpriteAnimation attack = new SpriteAnimation((int)Animations.Attack, 3);
+                attack.Loop = true;
+                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_01"), animationDelay));
+                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_02"), animationDelay));
+                attack.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_03"), animationDelay));
 
-                SpriteAnimation death = new SpriteAnimation((int)Animations.Death, animationFrameCount);
-                switch (virusType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Virus:
-                    case PyroGameGameObjectTypes.Green_Virus:
-                    case PyroGameGameObjectTypes.Red_Virus:
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death4"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death5"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death6"), animationDelay, crop));
-                        break;
-                }
+                //Attack
+                SpriteAnimation move = new SpriteAnimation((int)Animations.Move, 2);
+                move.Loop = true;
+                move.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_moveNN_01"), animationDelay));
+                move.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_moveNN_02"), animationDelay));
 
-                // Save static data
                 //animations
                 staticData.Add(idle);
-                staticData.Add(death);
+                staticData.Add(attack);
+                staticData.Add(move);
 
                 SetStaticData(thisGameObjectType, staticData);
             }
 
             RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
-            render.Priority = SortConstants.PROJECTILE;
-            render.CameraRelative = true;
-            
-            SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
-            sprite.SetSize((int)result.width, (int)result.height);
-            sprite.SetRenderComponent(render);
-            sprite.SetSize(PyroGameManager.SlotSize, PyroGameManager.SlotSize);
-
-            LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
-
-            result.Add(render);
-            result.Add(lifetime);
-            result.Add(sprite);
-
-            AddStaticData(thisGameObjectType, result, sprite);
-
-            sprite.PlayAnimation((int)Animations.Idle);
-
-            return result;
-        }
-
-        public GameObject SpawnPill(float positionX, float positionY, PyroGameGameObjectTypes pillType)
-        {
-            //safty check
-            if (pillType != PyroGameGameObjectTypes.Blue_Pill && pillType != PyroGameGameObjectTypes.Red_Pill && pillType != PyroGameGameObjectTypes.Green_Pill)
-                throw new Exception("Failed to spawn Pill " + pillType);
-
-            int thisGameObjectType = (int)pillType;
-            GameObject result = mGameObjectPool.Allocate();
-            result.SetPosition(positionX, positionY);
-            result.ActivationRadius = mActivationRadiusTight;
-            result.width = PyroGameManager.SlotSize;
-            result.height = PyroGameManager.SlotSize;
-            result.DestroyOnDeactivation = true;
-            
-            result.life = 1;
-
-            FixedSizeArray<BaseObject> staticData = GetStaticData(thisGameObjectType);
-
-            if (staticData == null)
-            {
-                ContentManager content = sSystemRegistry.Game.Content;
-                int staticObjectCount = 6;
-                staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
-
-                // Animation Data
-                Rectangle crop = new Rectangle(0, 0, (int)result.width, (int)result.height);
-                //Idle
-                float animationDuration = 1f;
-                int animationFrameCount = 1;
-                float animationDelay = animationDuration / animationFrameCount;
-
-                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Pill:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red"), animationDelay, crop));
-                        break;
-                }
-
-                SpriteAnimation top = new SpriteAnimation((int)Animations.Big_Top, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                        top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_top"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Pill:
-                        top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_top"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        top.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_top"), animationDelay, crop));
-                        break;
-                }
-
-                SpriteAnimation bottom = new SpriteAnimation((int)Animations.Big_Bottom, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                        bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_bottom"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Pill:
-                        bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_bottom"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        bottom.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_bottom"), animationDelay, crop));
-                        break;
-                }
-
-                SpriteAnimation right = new SpriteAnimation((int)Animations.Big_Right, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                        right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_right"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Pill:
-                        right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_right"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        right.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_right"), animationDelay, crop));
-                        break;
-                }
-
-                SpriteAnimation left = new SpriteAnimation((int)Animations.Big_Left, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                        left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_blue_left"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Green_Pill:
-                        left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_green_left"), animationDelay, crop));
-                        break;
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        left.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_red_left"), animationDelay, crop));
-                        break;
-                }
-
-                //Death
-                animationDuration = DeathAnimationDuration;
-                animationFrameCount = 4;
-                animationDelay = animationDuration / animationFrameCount;
-
-                SpriteAnimation death = new SpriteAnimation((int)Animations.Death, animationFrameCount);
-                switch (pillType)
-                {
-                    case PyroGameGameObjectTypes.Blue_Pill:
-                    case PyroGameGameObjectTypes.Green_Pill:
-                    case PyroGameGameObjectTypes.Red_Pill:
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death0"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death1"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death2"), animationDelay, crop));
-                        death.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\pill_death3"), animationDelay, crop));
-                        break;
-                }
-
-                // Save static data
-                //animations
-                staticData.Add(idle);
-                staticData.Add(top);
-                staticData.Add(bottom);
-                staticData.Add(right);
-                staticData.Add(left);
-                staticData.Add(death);
-
-                SetStaticData(thisGameObjectType, staticData);
-            }
-
-            RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
-            render.Priority = SortConstants.PROJECTILE;
+            render.Priority = SortConstants.PLAYER;
             render.CameraRelative = true;
 
             SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
             sprite.SetSize((int)result.width, (int)result.height);
             sprite.SetRenderComponent(render);
-            sprite.SetSize(PyroGameManager.SlotSize, PyroGameManager.SlotSize);
+            sprite.SetRenderMode(SpriteComponent.RenderMode.RotateToFacingDirection);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
-
+            
             result.Add(render);
             result.Add(lifetime);
             result.Add(sprite);
-
+            
             AddStaticData(thisGameObjectType, result, sprite);
 
             sprite.PlayAnimation((int)Animations.Idle);
@@ -478,7 +297,7 @@ namespace Pyro
             return solidSurface;
         }
     }
-    public enum PyroGameGameObjectTypes
+    public enum PyroGameObjectTypes
     {
         //these first values must match those in the generic GameObjectTypes
         Invalid = -1,
@@ -487,20 +306,12 @@ namespace Pyro
         Player = 2,
 
         Background_Plate,
-        Red_Pill,
-        Green_Pill,
-        Blue_Pill,
-        Red_Virus,
-        Green_Virus,
-        Blue_Virus,
     }
     public enum Animations
     {
         Idle,
-        Big_Top,
-        Big_Bottom,
-        Big_Left,
-        Big_Right,
+        Move,
+        Attack,
         Death,
     }
 }
