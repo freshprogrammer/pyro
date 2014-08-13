@@ -9,10 +9,13 @@ Z,X rotate pill left and right
 Esc - Pause
 Enter - menu interact
 
-
-
 ::Special Keys::
 None
 
+
+
 ::New Features::
 old code
+
+::Build Notes::
+To build with fresh solution, you will need to manualy link the FreshGameLibrary.dll included in the bin folder.
