@@ -198,16 +198,16 @@ namespace Pyro
             collision.LoadCollisionTiles(TiledLevel.DefaultTileSize);
             BaseObject.sSystemRegistry.HitPointPool = new HitPointPool();
 
+            //factory was removed from the registry for generalazation reasons
+            objectFactory = new PyroGameObjectFactory();
+            BaseObject.sSystemRegistry.GameObjectFactory = objectFactory;
+            objectFactory.PreloadEffects();
+
             //GameManager goes here
             gameManager = new GameObjectManager(paramaters.GameWidth * 1.3f, MaxObjects);//TODO put right number here (activation radius, object max count)
             BaseObject.sSystemRegistry.GameObjectManager = gameManager;
 
             pyroManager = new PyroGameManager();
-
-            //factory was removed from the registry for generalazation reasons
-            objectFactory = new PyroGameObjectFactory();
-            BaseObject.sSystemRegistry.GameObjectFactory = objectFactory;
-            objectFactory.PreloadEffects();
 
             //BaseObject.sSystemRegistry.hotSpotSystem = new HotSpotSystem();
 
@@ -313,7 +313,7 @@ namespace Pyro
             menuFont = Content.Load<SpriteFont>("MenuFont");
 
             //background pic
-            //backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
+            backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
             //backgroundPic = Content.Load<Texture2D>(@"pics\background");
             menuSelectorPic = Content.Load<Texture2D>(@"pics\misc\menuSelector");
 

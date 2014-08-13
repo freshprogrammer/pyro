@@ -188,6 +188,49 @@ namespace Pyro
             return result;
         }
 
+        public GameObject SpawnTileEmpty(float positionX, float positionY)
+        {
+            int type = (int)PyroGameObjectTypes.Tile_Blank;
+
+            GameObject result = mGameObjectPool.Allocate();
+            result.SetPosition(positionX, positionY);
+            result.ActivationRadius = mActivationRadiusTight;
+            result.width = 32;
+            result.height = 32;
+            result.PositionLocked = true;
+            result.DestroyOnDeactivation = false;
+
+
+            FixedSizeArray<BaseObject> staticData = GetStaticData(type);
+            if (staticData == null)
+            {
+                ContentManager content = sSystemRegistry.Game.Content;
+                GraphicsDevice device = sSystemRegistry.Game.GraphicsDevice;
+
+                int staticObjectCount = 1;
+                staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
+
+                const int fileImageSize = 64;
+                Rectangle crop = new Rectangle(0, 0, fileImageSize, fileImageSize);
+                Texture2D texture = content.Load<Texture2D>(@"pics\tile_empty");
+                
+                
+                DrawableTexture2D textureDrawable = new DrawableTexture2D(texture, (int)result.width, (int)result.height);
+                textureDrawable.SetCrop(crop);
+
+                RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
+                render.Priority = SortConstants.FOREGROUND;
+                render.setDrawable(textureDrawable);
+
+                staticData.Add(render);
+                SetStaticData(type, staticData);
+            }
+
+            AddStaticData(type, result, null);
+
+            return result;
+        }
+
         public GameObject SpawnPlayer(float positionX, float positionY)
         {
             int thisGameObjectType = (int)PyroGameObjectTypes.Player;
