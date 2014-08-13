@@ -14,12 +14,13 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
-        private const int ColorCodeCount = 3;
-        private const int MatchesNeededToKill = 2;
-        private const int BoardXOffset = 250;
-        private const int BoardYOffset = 50;
-        private const int GameWidthInSlots = 15;
-        private const int GameHeightInSlots = 15;
+        public const bool TimeBasedMovement = true;
+
+        private const int FireDefaultLifetime = 20;//start length
+        private static int BoardXOffset = 50;
+        private static int BoardYOffset = 50;
+        private const int GameWidthInSlots = 30;
+        private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
@@ -37,6 +38,8 @@ namespace Pyro
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> slots = new FixedSizeArray<GameSlot>(GameSlotCount);
+        private FixedSizeArray<GameSlot> fires = new FixedSizeArray<GameSlot>(GameSlotCount);
+        private FixedSizeArray<GameSlot> deadFires= new FixedSizeArray<GameSlot>(GameSlotCount);
         private GameSlot playerSlot;
         
         //input
@@ -48,6 +51,7 @@ namespace Pyro
         private float lastTickTime = -5000;
         private float playerMoveTickDelay = playerMoveTickDelay_Med;
         private Random random;
+        private int fireDurration;
 
         //assets
         private SoundEffect lockInSound;
@@ -71,6 +75,10 @@ namespace Pyro
 #endif
             slots = GenerateSlots();
 
+            //center tiles
+            BoardXOffset = sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize)/2;
+            BoardYOffset = sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
+
             playerSlot = new GameSlot(0, 0);
 
             lockInSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\button-3");
@@ -91,57 +99,99 @@ namespace Pyro
             int slotCount = GameWidthInSlots * (GameHeightInSlots);
             FixedSizeArray<GameSlot> result = new FixedSizeArray<GameSlot>(slotCount);
 
+            GameObjectManager manager = sSystemRegistry.GameObjectManager;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+
             for (int xx = 0; xx < slotCount; xx++)
             {
                 int xPos = xx % GameWidthInSlots;
                 int yPos = xx / GameWidthInSlots;
-                GameSlot s = new GameSlot(xPos, yPos);
-                result.Add(s);
+
+                GameObject emptyTile = factory.SpawnTileEmpty(xPos, yPos);
+                manager.Add(emptyTile);
+
+                GameSlot slot = new GameSlot(xPos, yPos);
+
+                result.Add(slot);
             }
 
             return result;
+        }
+
+        public void SpawnLevelTiles()
+        {
+            foreach( GameSlot slot in slots)
+            {
+                GameObjectManager manager = sSystemRegistry.GameObjectManager;
+                PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+
+                GameObject tile = factory.SpawnTileEmpty(0,0);
+                manager.Add(tile);
+
+                slot.Setup(GameSlotStatus.Empty, tile);
+
+                tile.SetPosition(GetSlotLocation(slot.Position));
+            }
         }
 
         public void FillNewLevel(int LevelNo)
         {
             SpawnPlayer();
 
+            SpawnLevelTiles();
             //TODO build random level?
         }
 
         private void SpawnPlayer()
         {
-            int screenX = 500;
-            int screenY = 500;
-
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
             PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            GameObject playerGameObject = factory.SpawnPlayer(screenX, screenY);
+            GameObject playerGameObject = factory.SpawnPlayer(0, 0);
             manager.Add(playerGameObject);
 
-            playerSlot.Setup(GameSlotType.Pill, playerGameObject);
+            playerSlot.SetPosition(GameWidthInSlots / 2 + 1, GameHeightInSlots / 2 + 1);
+            playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
+
+            playerGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
         }
 
-        public FixedSizeArray<Point> GenerateSpawnPoints(int slotsCount, int topSpace)
+        private void SpawnFireAtPlayer()
         {
-            int spawnSpotCount = GameWidthInSlots * (GameHeightInSlots - topSpace);
-            FixedSizeArray<Point> result = new FixedSizeArray<Point>(spawnSpotCount);
+            GameObjectManager manager = sSystemRegistry.GameObjectManager;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            for (int xx = 0; xx < spawnSpotCount; xx++)
+            GameObject fireGameObject = factory.SpawnFire(0, 0, fireDurration);
+            manager.Add(fireGameObject);
+
+            GameSlot fireSlot = GetGameSlot(playerSlot.Position);
+            
+            //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
+            fireSlot.Child = fireGameObject;
+            
+            fireGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
+
+            fires.Add(fireSlot);
+        }
+
+        private void KillFiresBy1()
+        {
+            foreach (GameSlot fire in fires)
             {
-                int xPos = xx % GameWidthInSlots;
-                int yPos = xx / GameWidthInSlots;
-                Point pt = new Point(xPos, yPos + topSpace);
-                result.Add(pt);
+                if (fire.Child != null)
+                {//in case this fire is already dead somehome... cuz collision is turned off and only one fire per tile
+                    fire.Child.life--;
+                    if (fire.Child.life <= 0)
+                        deadFires.Add(fire);
+                }
             }
-
-            while (result.Count > slotsCount)
+            foreach (GameSlot fire in deadFires)
             {
-                result.Remove(random.Next(result.Count));
+                fires.Remove(fire,true);
+                //clear slot
+                fire.Child = null;
             }
-
-            return result;
+            deadFires.Clear();
         }
 
         private void ProcessInput(float gameTime)
@@ -150,51 +200,50 @@ namespace Pyro
             if (input.LeftPressed && !lastInput.LeftPressed)
             {
                 //Move Left Pressed
-                MovePlayer(-1, 0, playerSlot);
+                MovePlayer(-1, 0);
             }
             else if (input.RightPressed && !lastInput.RightPressed)
             {
                 //Move Right Pressed
-                MovePlayer(1, 0, playerSlot);
+                MovePlayer(1, 0);
             }
             else if (input.UpPressed && !lastInput.UpPressed)
             {
                 //Move Up Pressed
-                MovePlayer(0, -1, playerSlot);
+                MovePlayer(0, -1);
             }
             else if (input.DownPressed && !lastInput.DownPressed)
             {
                 //Move Down Pressed
                 lastDownPressedTime = gameTime;
-                MovePlayer(0, 1, playerSlot);
+                MovePlayer(0, 1);
             }
 
             lastInput = PyroGame.PlayerController.Snapshot();
         }
 
-        private bool IsCloseSlotEmpty(int xDif, int yDif, GameSlot slot)
+        private bool MovePlayer(int xDif, int yDif)
         {
-            Point newSlotPos = new Point(slot.X + xDif, slot.Y + yDif);
-            if (newSlotPos.X >= 0 && newSlotPos.X <= GameWidthInSlots - 1)
-            {
-                if (newSlotPos.Y >= 0 && newSlotPos.Y <= GameHeightInSlots - 1)
-                {
-                    if (GetGameSlot(newSlotPos.X, newSlotPos.Y).IsEmpty)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+            
+            int newX = playerSlot.X + xDif;
+            int newY = playerSlot.Y + yDif;
 
-        private bool MovePlayer(int xDif, int yDif, GameSlot slot)
-        {
-            if (IsCloseSlotEmpty(xDif, yDif, slot))
+            if (newX < 0) newX += GameWidthInSlots;
+            else newX %= GameWidthInSlots;
+
+            if (newY < 0) newY += GameHeightInSlots;
+            else newY %= GameHeightInSlots;
+
+            GameSlot newSlot = GetGameSlot(newX, newY);
+            if (newSlot.IsEmpty)
             {
-                slot.Move(xDif, yDif);
-                slot.Child.facingDirection.X = xDif;
-                slot.Child.facingDirection.Y = yDif;
+                //create fire
+                KillFiresBy1();
+                SpawnFireAtPlayer();
+
+                playerSlot.SetPosition(newSlot.Position);
+                playerSlot.Child.facingDirection.X = xDif;
+                playerSlot.Child.facingDirection.Y = yDif;
                 return true;
             }
             return false;
@@ -336,6 +385,8 @@ namespace Pyro
             ClearSlots();
             FillNewLevel(LevelNo);
 
+            fireDurration = FireDefaultLifetime;
+
             gameState = GameState.PlayerMoving;
         }
 
@@ -383,11 +434,11 @@ namespace Pyro
         }
     }
 
-    enum GameSlotType
+    enum GameSlotStatus
     {
+        Player,
+        Fire,
         Empty,
-        Pill,
-        Virus
     }
 
     class GameSlot
@@ -395,15 +446,14 @@ namespace Pyro
         public static GameSlot Blank = new GameSlot(0, 0);
 
         public GameObject Child;
-        public GameSlotType Type = GameSlotType.Empty;
+        public GameSlotStatus Type = GameSlotStatus.Empty;
         private Point position = Point.Zero;
 
-        public bool IsEmpty { get { return Type == GameSlotType.Empty; } }
+        public bool IsEmpty { get { return Type == GameSlotStatus.Empty; } }
 
         public int X { get { return position.X; } }
         public int Y { get { return position.Y; } }
         public Point Position { get { return position; } }
-
 
         public GameSlot(int x, int y)
         {
@@ -419,10 +469,10 @@ namespace Pyro
         public void EmptySlot()
         {
             Child = null;
-            Type = GameSlotType.Empty;
+            Type = GameSlotStatus.Empty;
         }
 
-        public void Setup(GameSlotType type, GameObject o)
+        public void Setup(GameSlotStatus type, GameObject o)
         {
             Child = o;
             this.Type = type;
