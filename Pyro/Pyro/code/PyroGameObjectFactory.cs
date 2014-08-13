@@ -314,16 +314,17 @@ namespace Pyro
 
                 // Animation Data
                 float animationDelay = 0.16f;
+                Rectangle crop = new Rectangle(0, 0, 64,64);
 
                 SpriteAnimation fire1 = new SpriteAnimation((int)FireAnimation.Fire100, 2);
                 fire1.Loop = true;
-                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-1"), animationDelay));
-                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-2"), animationDelay));
+                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-1"), animationDelay, crop));
+                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-2"), animationDelay, crop));
 
                 SpriteAnimation fire2 = new SpriteAnimation((int)FireAnimation.Fire90, 2);
                 fire2.Loop = true;
-                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay));
-                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus2"), animationDelay));
+                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay, crop));
+                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus2"), animationDelay, crop));
 
                 //animations
                 staticData.Add(fire1);
