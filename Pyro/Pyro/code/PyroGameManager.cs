@@ -13,7 +13,7 @@ namespace Pyro
     class PyroGameManager : ObjectManager
     {
         //constant control variables
-        public const int SlotSize = 45;
+        public const int SlotSize = 32;
         private const int ColorCodeCount = 3;
         private const int MatchesNeededToKill = 2;
         private const int BoardXOffset = 250;
