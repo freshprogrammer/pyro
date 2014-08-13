@@ -263,7 +263,7 @@ namespace Pyro
 
                 //animations
                 staticData.Add(idle);
-                
+
                 SetStaticData(thisGameObjectType, staticData);
             }
 
@@ -277,16 +277,95 @@ namespace Pyro
             sprite.SetRenderMode(SpriteComponent.RenderMode.RotateToFacingDirection);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
-            
+
             result.Add(render);
             result.Add(lifetime);
             result.Add(sprite);
-            
+
             AddStaticData(thisGameObjectType, result, sprite);
 
             sprite.PlayAnimation((int)Animations.Idle);
 
             return result;
+        }
+
+
+
+        public GameObject SpawnFire(float positionX, float positionY, int life)
+        {
+            int thisGameObjectType = (int)PyroGameObjectTypes.Fire;
+            GameObject result = mGameObjectPool.Allocate();
+            result.SetPosition(positionX, positionY);
+            result.ActivationRadius = mActivationRadius_AlwaysActive;
+            result.width = 32;
+            result.height = 32;
+
+            result.life = life;
+            result.team = GameObject.Team.NONE;
+
+
+            FixedSizeArray<BaseObject> staticData = GetStaticData(thisGameObjectType);
+
+            if (staticData == null)
+            {
+                ContentManager content = sSystemRegistry.Game.Content;
+                int staticObjectCount = 3;
+                staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
+
+                // Animation Data
+                float animationDelay = 0.16f;
+
+                SpriteAnimation fire1 = new SpriteAnimation((int)FireAnimation.Fire100, 2);
+                fire1.Loop = true;
+                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-1"), animationDelay));
+                fire1.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1-2"), animationDelay));
+
+                SpriteAnimation fire2 = new SpriteAnimation((int)FireAnimation.Fire90, 2);
+                fire2.Loop = true;
+                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay));
+                fire2.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus2"), animationDelay));
+
+                //animations
+                staticData.Add(fire1);
+                staticData.Add(fire2);
+
+                SetStaticData(thisGameObjectType, staticData);
+            }
+
+            RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
+            render.Priority = SortConstants.PLAYER;
+            render.CameraRelative = true;
+
+            SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
+            sprite.SetSize((int)result.width, (int)result.height);
+            sprite.SetRenderComponent(render);
+            sprite.SetRenderMode(SpriteComponent.RenderMode.Standard);
+
+            LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
+
+            result.Add(render);
+            result.Add(lifetime);
+            result.Add(sprite);
+
+            AddStaticData(thisGameObjectType, result, sprite);
+
+            sprite.PlayAnimation((int)FireAnimation.Fire100);
+
+            return result;
+        }
+        public enum FireAnimation
+        {
+            Fire100,
+            Fire90,
+            Fire80,
+            Fire70,
+            Fire60,
+            Fire50,
+            Fire40,
+            Fire30,
+            Fire20,
+            Fire10,
+            Fire0,
         }
 
         public SolidSurfaceComponent GenerateRectangleSolidSurfaceComponent(float width, float height, bool container)
@@ -335,6 +414,7 @@ namespace Pyro
         Player = 2,
 
         Background_Plate,
+        Fire,
     }
     public enum Animations
     {

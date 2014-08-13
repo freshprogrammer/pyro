@@ -9,9 +9,5 @@ This was made for fun, not necessarily maintainability or long term reliability.
 - Enter - menu interact
 
 
-
-###Special Keys
-- None
-
 ###New Features
 - old code
