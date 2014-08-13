@@ -16,9 +16,9 @@ namespace Pyro
         public const int SlotSize = 32;
 
         private const int fireDurration = 4;//start length
-        private const int BoardXOffset = 250;
-        private const int BoardYOffset = 50;
-        private const int GameWidthInSlots = 20;
+        private static int BoardXOffset = 50;
+        private static int BoardYOffset = 50;
+        private const int GameWidthInSlots = 30;
         private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
@@ -71,6 +71,10 @@ namespace Pyro
 #endif
             slots = GenerateSlots();
 
+            //center tiles
+            BoardXOffset = sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize)/2;
+            BoardYOffset = sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
+
             playerSlot = new GameSlot(0, 0);
 
             lockInSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\button-3");
@@ -120,7 +124,7 @@ namespace Pyro
                 GameObject tile = factory.SpawnTileEmpty(0,0);
                 manager.Add(tile);
 
-                slot.Setup(GameSlotType.Empty, tile);
+                slot.Setup(GameSlotStatus.Empty, tile);
 
                 tile.SetPosition(GetSlotLocation(slot.Position));
             }
@@ -143,7 +147,7 @@ namespace Pyro
             manager.Add(playerGameObject);
 
             playerSlot.SetPosition(GameWidthInSlots / 2 + 1, GameHeightInSlots / 2 + 1);
-            playerSlot.Setup(GameSlotType.Pill, playerGameObject);
+            playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
             
             playerGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
         }
@@ -396,11 +400,11 @@ namespace Pyro
         }
     }
 
-    enum GameSlotType
+    enum GameSlotStatus
     {
+        Player,
+        Fire,
         Empty,
-        Pill,
-        Virus
     }
 
     class GameSlot
@@ -408,10 +412,10 @@ namespace Pyro
         public static GameSlot Blank = new GameSlot(0, 0);
 
         public GameObject Child;
-        public GameSlotType Type = GameSlotType.Empty;
+        public GameSlotStatus Type = GameSlotStatus.Empty;
         private Point position = Point.Zero;
 
-        public bool IsEmpty { get { return Type == GameSlotType.Empty; } }
+        public bool IsEmpty { get { return Type == GameSlotStatus.Empty; } }
 
         public int X { get { return position.X; } }
         public int Y { get { return position.Y; } }
@@ -431,10 +435,10 @@ namespace Pyro
         public void EmptySlot()
         {
             Child = null;
-            Type = GameSlotType.Empty;
+            Type = GameSlotStatus.Empty;
         }
 
-        public void Setup(GameSlotType type, GameObject o)
+        public void Setup(GameSlotStatus type, GameObject o)
         {
             Child = o;
             this.Type = type;
