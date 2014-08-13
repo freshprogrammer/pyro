@@ -180,22 +180,6 @@ namespace Pyro
             lastInput = PyroGame.PlayerController.Snapshot();
         }
 
-        private bool IsCloseSlotEmpty(int xDif, int yDif, GameSlot slot)
-        {
-            Point newSlotPos = new Point(slot.X + xDif, slot.Y + yDif);
-            if (newSlotPos.X >= 0 && newSlotPos.X <= GameWidthInSlots - 1)
-            {
-                if (newSlotPos.Y >= 0 && newSlotPos.Y <= GameHeightInSlots - 1)
-                {
-                    if (GetGameSlot(newSlotPos.X, newSlotPos.Y).IsEmpty)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         private void SpawnFireAtPlayer()
         {
 
@@ -203,13 +187,24 @@ namespace Pyro
 
         private bool MovePlayer(int xDif, int yDif)
         {
-            if (IsCloseSlotEmpty(xDif, yDif, playerSlot))
+            
+            int newX = playerSlot.X + xDif;
+            int newY = playerSlot.Y + yDif;
+
+            if (newX < 0) newX += GameWidthInSlots;
+            else newX %= GameWidthInSlots;
+
+            if (newY < 0) newY += GameHeightInSlots;
+            else newY %= GameHeightInSlots;
+
+            GameSlot newSlot = GetGameSlot(newX, newY);
+            if (newSlot.IsEmpty)
             {
                 //create fire
 
                 SpawnFireAtPlayer();
 
-                playerSlot.Move(xDif, yDif);
+                playerSlot.SetPosition(newSlot.Position);
                 playerSlot.Child.facingDirection.X = xDif;
                 playerSlot.Child.facingDirection.Y = yDif;
                 return true;
