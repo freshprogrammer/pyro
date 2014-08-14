@@ -6,6 +6,7 @@
 *.user
 *.sln.docstates
 Thumbs.db
+_Screenshots/
 
 # Build results
 #[Dd]ebug/
