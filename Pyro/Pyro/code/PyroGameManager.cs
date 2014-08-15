@@ -34,7 +34,6 @@ namespace Pyro
         public static int HighScore = 1000;
         public static int LevelNo = 0;
         public static int Speed = 0;
-        public static int RemainingViruses = 0;
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> slots = new FixedSizeArray<GameSlot>(GameSlotCount);
@@ -44,20 +43,16 @@ namespace Pyro
         
         //input
         private PlayerController lastInput;
-        private float lastDownPressedTime = 0;
 
         //timing and game logic
         public static GameState gameState;
         private float lastTickTime = -5000;
-        private float playerMoveTickDelay = playerMoveTickDelay_Med;
+        private float playerMoveTickDelay = playerMoveTickDelay_High;
         private Random random;
         private int fireDurration;
 
         //assets
         private SoundEffect lockInSound;
-        private SoundEffect killSound;
-        private SoundEffect killVirusSound;
-        private SoundEffect killLastVirusSound;
 
 
         public enum GameState
@@ -82,9 +77,6 @@ namespace Pyro
             playerSlot = new GameSlot(0, 0);
 
             lockInSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\button-3");
-            killSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\shotgun_cock_01");
-            killVirusSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\Sonic_Vanish");
-            killLastVirusSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\Sonic_Continue");
             
             gameState = GameState.Loading;
         }
@@ -150,8 +142,13 @@ namespace Pyro
             GameObject playerGameObject = factory.SpawnPlayer(0, 0);
             manager.Add(playerGameObject);
 
+            //spawn at center
             playerSlot.SetPosition(GameWidthInSlots / 2 + 1, GameHeightInSlots / 2 + 1);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
+
+            //spawn facing right
+            playerSlot.Child.facingDirection.X = 1;
+            playerSlot.Child.facingDirection.Y = 0;
 
             playerGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
         }
@@ -197,26 +194,38 @@ namespace Pyro
         private void ProcessInput(float gameTime)
         {
             PlayerController input = PyroGame.PlayerController;
+            int xDif = 0;
+            int yDif = 0;
+            
             if (input.LeftPressed && !lastInput.LeftPressed)
             {
                 //Move Left Pressed
-                MovePlayer(-1, 0);
+                xDif = -1;
             }
             else if (input.RightPressed && !lastInput.RightPressed)
             {
                 //Move Right Pressed
-                MovePlayer(1, 0);
+                xDif = 1;
             }
             else if (input.UpPressed && !lastInput.UpPressed)
             {
                 //Move Up Pressed
-                MovePlayer(0, -1);
+                yDif = -1;
             }
             else if (input.DownPressed && !lastInput.DownPressed)
             {
                 //Move Down Pressed
-                lastDownPressedTime = gameTime;
-                MovePlayer(0, 1);
+                yDif = 1;
+            }
+
+            if (TimeBasedMovement)
+            {
+                playerSlot.Child.facingDirection.X = xDif;
+                playerSlot.Child.facingDirection.Y = yDif;
+            }
+            else
+            {
+                MovePlayer(xDif, yDif);
             }
 
             lastInput = PyroGame.PlayerController.Snapshot();
@@ -259,7 +268,7 @@ namespace Pyro
                 if (gameState == GameState.PlayerMoving)
                 {
                     //processInput must be outsude the tick so it can be called faster for faster controls and quick dropping
-                    ProcessInput(gameTime);
+                    //ProcessInput(gameTime);
                     timePerTick = playerMoveTickDelay;
                 }
                 else
@@ -289,29 +298,16 @@ namespace Pyro
                     {
                         //Player hit something - game over
                         //game over
+                        if (TimeBasedMovement)
+                        {
+                            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+                        }
                     }
                     break;
             }
         }
 
-        private void PlayKillSound(int virusKills)
-        {
-            switch (virusKills)
-            {
-                case 0:
-                    sSystemRegistry.SoundSystem.PlaySoundEffect(killSound, false);
-                    break;
-                default:
-                case 1:
-                    sSystemRegistry.SoundSystem.PlaySoundEffect(killVirusSound, false);
-                    break;
-                case -1:
-                    sSystemRegistry.SoundSystem.PlaySoundEffect(killLastVirusSound, false);
-                    break;
-            }
-        }
-
-        public void MovePillSlotContents(int xDif, int yDif, GameSlot slot)
+        public void MoveGameSlotContents(int xDif, int yDif, GameSlot slot)
         {
             GameSlot newSlot = GetGameSlot(slot.X + xDif, slot.Y + yDif);
             newSlot.TransferSlotFrom(slot);
@@ -376,7 +372,6 @@ namespace Pyro
 
             lastInput = new PlayerController();
 
-
             StartLevel();
         }
 
@@ -401,21 +396,21 @@ namespace Pyro
             }
         }
 
-        private int GetPillSlotIndex(int x, int y)
+        private int GetGameSlotIndex(int x, int y)
         {
             return y * GameWidthInSlots + x % GameWidthInSlots;
         }
 
-        private int GetPillSlotIndex(Point pt)
+        private int GetGameSlotIndex(Point pt)
         {
-            return GetPillSlotIndex(pt.X, pt.Y);
+            return GetGameSlotIndex(pt.X, pt.Y);
         }
 
         private GameSlot GetGameSlot(int x, int y)
         {
             if (y < 0 || x < 0 || y >= GameHeightInSlots || x >= GameWidthInSlots)//off game grid
                 return null;
-            return slots[GetPillSlotIndex(x, y)];
+            return slots[GetGameSlotIndex(x, y)];
         }
 
         private GameSlot GetGameSlot(Point pt)
@@ -511,10 +506,8 @@ namespace Pyro
 
         public void KillImedietly()
         {
-            //SetPillEnd(PillEnd.Dead);
             if(Child!=null)
                 Child.life = 0;
-            //Pill.FindByType<LifetimeComponent>().SetTimeUntilDeath(0);
         }
 
         public void CloneFrom(GameSlot src)

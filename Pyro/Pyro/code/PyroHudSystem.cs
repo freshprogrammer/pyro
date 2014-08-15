@@ -8,25 +8,22 @@ namespace Pyro
 {
     class PyroHudSystem : HudSystem
     {
-        /*
+        
         private StringRenderObject levelTitle;
         private StringRenderObject level;
         private StringRenderObject speedTitle;
         private StringRenderObject speed;
-        private StringRenderObject virusTitle;
-        private StringRenderObject virus;
         private StringRenderObject scoreTitle;
         private StringRenderObject score;
         private StringRenderObject highScoreTitle;
         private StringRenderObject highScore;
 
         private float scale = 2f;
-        */
-
+        
         public override void Setup()
         {
             Reset();
-            /*
+            
             int rightXOffset = 950;
             int rightXSubOffset = rightXOffset + 32 * 9;
             int rightYOffset = 400;
@@ -43,11 +40,6 @@ namespace Pyro
             speedTitle.SetPosition(rightXOffset, rightYOffset + verticalSeperation);
             speedTitle.SetScale(scale, scale);
 
-            virusTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Virus");
-            virusTitle.Priority = SortConstants.HUD;
-            virusTitle.SetPosition(rightXOffset, rightYOffset + verticalSeperation * 2);
-            virusTitle.SetScale(scale, scale);
-
             level = new StringRenderObject(new KromskyFontSpriteSheet(), "0000");
             level.RightAligned = true;
             level.Priority = SortConstants.HUD;
@@ -59,13 +51,6 @@ namespace Pyro
             speed.Priority = SortConstants.HUD;
             speed.SetPosition(rightXSubOffset, rightYOffset + verticalSeperation + verticalSubSeperation);
             speed.SetScale(scale, scale);
-
-            virus = new StringRenderObject(new KromskyFontSpriteSheet(), "00");
-            virus.RightAligned = true;
-            virus.Priority = SortConstants.HUD;
-            virus.SetPosition(rightXSubOffset, rightYOffset + verticalSeperation * 2 + verticalSubSeperation);
-            virus.SetScale(scale, scale);
-
 
 
             int leftXOffset = 20;
@@ -92,7 +77,7 @@ namespace Pyro
             score.RightAligned = true;
             score.Priority = SortConstants.HUD;
             score.SetPosition(leftXSubOffset, leftYOffset + verticalSeperation + verticalSubSeperation);
-            score.SetScale(scale, scale);*/
+            score.SetScale(scale, scale);
         }
 
         public override void Reset()
@@ -107,10 +92,8 @@ namespace Pyro
                 GameObjectManager manager = sSystemRegistry.GameObjectManager;
                 if (manager != null)
                 {
-                    /*
                     //update to render
                     levelTitle.Update(secondsDelta, this);
-                    virusTitle.Update(secondsDelta, this);
                     speedTitle.Update(secondsDelta, this);
                     scoreTitle.Update(secondsDelta, this);
                     highScoreTitle.Update(secondsDelta, this);
@@ -126,10 +109,6 @@ namespace Pyro
 
                     speed.SetText(PyroGameManager.GetSpeedName(PyroGameManager.Speed));
                     speed.Update(secondsDelta, this);
-
-                    virus.SetText(PyroGameManager.RemainingViruses.ToString());
-                    virus.Update(secondsDelta, this);
-                    */
                 }
             }
         }
