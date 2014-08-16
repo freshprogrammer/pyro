@@ -14,13 +14,13 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
-        public const bool TimeBasedMovement = true;
+        public static bool TimeBasedMovement = true;
 
         private const int FireDefaultLifetime = 20;//start length
         private static int BoardXOffset = 50;
         private static int BoardYOffset = 50;
-        private const int GameWidthInSlots = 30;
-        private const int GameHeightInSlots = 20;
+        private const int GameWidthInSlots = 35;
+        private const int GameHeightInSlots = 22;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
@@ -217,18 +217,32 @@ namespace Pyro
                 //Move Down Pressed
                 yDif = 1;
             }
-
-            if (TimeBasedMovement)
+            
+            if(!isOpositeDirection(playerSlot.Child.facingDirection.X,playerSlot.Child.facingDirection.Y,xDif,yDif))
             {
-                playerSlot.Child.facingDirection.X = xDif;
-                playerSlot.Child.facingDirection.Y = yDif;
-            }
-            else
-            {
-                MovePlayer(xDif, yDif);
+                if(xDif!=0 || yDif!=0)
+                {
+                    //not exact oposite direction
+                    playerSlot.Child.facingDirection.X = xDif;
+                    playerSlot.Child.facingDirection.Y = yDif;
+                    if(!TimeBasedMovement)
+                    {
+                        MovePlayer(xDif, yDif);
+                    }
+                }
             }
 
             lastInput = PyroGame.PlayerController.Snapshot();
+        }
+
+        private static bool isOpositeDirection(Point pt, Point pt2)
+        {
+            return (pt.X * -1 == pt2.X && pt.Y * -1 == pt2.Y);
+        }
+
+        private static bool isOpositeDirection(float x1, float y1, float x2, float y2)
+        {
+            return (x1 * -1 ==x2 && y1 * -1 ==y2);
         }
 
         private bool MovePlayer(int xDif, int yDif)
@@ -268,7 +282,7 @@ namespace Pyro
                 if (gameState == GameState.PlayerMoving)
                 {
                     //processInput must be outsude the tick so it can be called faster for faster controls and quick dropping
-                    //ProcessInput(gameTime);
+                    ProcessInput(gameTime);
                     timePerTick = playerMoveTickDelay;
                 }
                 else

@@ -1,4 +1,4 @@
-//#define DeveleperModeEnabled
+#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -505,7 +505,7 @@ namespace Pyro
 
 #if DeveleperModeEnabled
             if (debugMenuEnabled)
-                mainItems = new MenuItem[] { newGameItem, optionsItem, aboutItem, exitItem, debugMenuItem };
+                mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem, debugMenuItem };
             else
 #endif
             mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem };
@@ -1060,66 +1060,6 @@ namespace Pyro
             this.Exit();
         }
 
-        private void UpdatePlayerInput(GamePadState gamePad, KeyboardState keyState)
-        {
-            //PlayerController.MovementDir = new Vector2(0, 0);
-            Point moveDir = Point.Zero;
-
-            if (controllerInputEnabled)
-            {
-                ////save controller data so it can be accessed by the player component
-                //moveDir.X += (int)Math.Round(gamePad.ThumbSticks.Left.X, 0);
-                ////negative Y because 0,0 is the top left of the screen
-                //moveDir.Y -= (int)Math.Round(gamePad.ThumbSticks.Left.Y, 0);
-
-                if (gamePad.IsButtonDown(Buttons.DPadUp) || gamePad.IsButtonDown(Buttons.LeftThumbstickUp))
-                    moveDir.Y += -1;
-                if (gamePad.IsButtonDown(Buttons.DPadDown) || gamePad.IsButtonDown(Buttons.LeftThumbstickDown))
-                    moveDir.Y += 1;
-                if (gamePad.IsButtonDown(Buttons.DPadLeft) || gamePad.IsButtonDown(Buttons.LeftThumbstickLeft))
-                    moveDir.X += -1;
-                if (gamePad.IsButtonDown(Buttons.DPadRight) || gamePad.IsButtonDown(Buttons.LeftThumbstickRight))
-                    moveDir.X += 1;
-            }
-
-
-            //movementDir - add all directions and normalize to 1
-            Keys[] keys = keyState.GetPressedKeys();
-            foreach (Keys k in keys)
-            {
-                switch (k)
-                {
-                    case Keys.W:
-                    case Keys.Up:
-                        moveDir.Y += -1;
-                        break;
-                    case Keys.S:
-                    case Keys.Down:
-                        moveDir.Y += 1;
-                        break;
-                    case Keys.A:
-                    case Keys.Left:
-                        moveDir.X += -1;
-                        break;
-                    case Keys.D:
-                    case Keys.Right:
-                        moveDir.X += 1;
-                        break;
-                }
-            }
-
-            if (moveDir.X < -1)
-                moveDir.X = -1;
-            else if (moveDir.X > 1)
-                moveDir.X = 1;
-            if (moveDir.Y < -1)
-                moveDir.Y = -1;
-            else if (moveDir.Y > 1)
-                moveDir.Y = 1;
-
-            PlayerController.MovementDir = moveDir;
-        }
-
         private void UpdateAllInput()
         {
             if (cheatsEnabled)
@@ -1178,7 +1118,7 @@ namespace Pyro
 
             //keyboard  press/release event Input - not held Keys - directions left here for menu
             KeyboardState keyState = Keyboard.GetState();
-            Keys[] keysToListenFor = { Keys.F2, Keys.Escape, Keys.W, Keys.A, Keys.S, Keys.D, Keys.Left, Keys.Right, Keys.Up, Keys.Down, Keys.Space, Keys.Enter, Keys.OemTilde, Keys.D1, Keys.D2, Keys.D3, Keys.Z, Keys.X };
+            Keys[] keysToListenFor = { Keys.F1, Keys.F2, Keys.Escape, Keys.W, Keys.A, Keys.S, Keys.D, Keys.Left, Keys.Right, Keys.Up, Keys.Down, Keys.Space, Keys.Enter, Keys.OemTilde, Keys.D1, Keys.D2, Keys.D3 };
 
 
             foreach (Keys key in keysToListenFor)
@@ -1212,6 +1152,69 @@ namespace Pyro
             {
                 UpdatePlayerInput(oldGamePadState, oldKeyState);
             }
+        }
+
+        private void UpdatePlayerInput(GamePadState gamePad, KeyboardState keyState)
+        {
+            //PlayerController.MovementDir = new Vector2(0, 0);
+            Point moveDir = Point.Zero;
+
+            if (controllerInputEnabled)
+            {
+                ////save controller data so it can be accessed by the player component
+                //moveDir.X += (int)Math.Round(gamePad.ThumbSticks.Left.X, 0);
+                ////negative Y because 0,0 is the top left of the screen
+                //moveDir.Y -= (int)Math.Round(gamePad.ThumbSticks.Left.Y, 0);
+
+                if (gamePad.IsButtonDown(Buttons.DPadUp) || gamePad.IsButtonDown(Buttons.LeftThumbstickUp))
+                    moveDir.Y += -1;
+                if (gamePad.IsButtonDown(Buttons.DPadDown) || gamePad.IsButtonDown(Buttons.LeftThumbstickDown))
+                    moveDir.Y += 1;
+                if (gamePad.IsButtonDown(Buttons.DPadLeft) || gamePad.IsButtonDown(Buttons.LeftThumbstickLeft))
+                    moveDir.X += -1;
+                if (gamePad.IsButtonDown(Buttons.DPadRight) || gamePad.IsButtonDown(Buttons.LeftThumbstickRight))
+                    moveDir.X += 1;
+            }
+
+
+            //movementDir - add all directions and normalize to 1
+            Keys[] keys = keyState.GetPressedKeys();
+            foreach (Keys k in keys)
+            {
+                switch (k)
+                {
+                    case Keys.W:
+                    case Keys.Up:
+                        moveDir.Y += -1;
+                        break;
+                    case Keys.S:
+                    case Keys.Down:
+                        moveDir.Y += 1;
+                        break;
+                    case Keys.A:
+                    case Keys.Left:
+                        moveDir.X += -1;
+                        break;
+                    case Keys.D:
+                    case Keys.Right:
+                        moveDir.X += 1;
+                        break;
+                    case Keys.F1:
+                        PyroGameManager.TimeBasedMovement = !PyroGameManager.TimeBasedMovement;
+                        break;
+                }
+            }
+
+            if (moveDir.X < -1)
+                moveDir.X = -1;
+            else if (moveDir.X > 1)
+                moveDir.X = 1;
+            if (moveDir.Y < -1)
+                moveDir.Y = -1;
+            else if (moveDir.Y > 1)
+                moveDir.Y = 1;
+
+            PlayerController.MovementDir = moveDir;
         }
 
         private void ControllerEvent_MainMenu(Buttons button, bool pressed)
@@ -1525,7 +1528,8 @@ namespace Pyro
             }
 
             int fontSize = 15;
-            Color FPSColor = Color.LimeGreen;
+            Color DebugColor = Color.Red;
+            Color FPSGoodColor = Color.LimeGreen;
             Color FPSWarningColor = Color.Orange;
             Color FPSBadColor = Color.Red;
             const int singleFrameWarning = 50;
@@ -1589,7 +1593,7 @@ namespace Pyro
                 else if (warningBadFrame)
                     outputColor = FPSWarningColor;
                 else
-                    outputColor = FPSColor;
+                    outputColor = FPSGoodColor;
 
                 FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, outputColor, textAlign);
             }
@@ -1608,7 +1612,7 @@ namespace Pyro
                 data.Add("playTime: " + totalPlayTime);
                 //data.Add("TotalTime: " + gameTime.TotalGameTime);
 
-                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, FPSColor, textAlign);
+                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, DebugColor, textAlign);
             }
 
             if (debugShowMemoryInfo)
@@ -1644,7 +1648,7 @@ namespace Pyro
                 data.Add("PrivateMemorySize64" + seperator + FreshArchives.ByteCountToReadableString(myProcess.PrivateMemorySize64, decimals));
 
                 data.Reverse(0, data.Count);
-                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, FPSColor, textAlign);
+                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, DebugColor, textAlign);
             }
 
 
@@ -1667,7 +1671,7 @@ namespace Pyro
                 data.Add("Dynamic CollisionObjects: " + BaseObject.sSystemRegistry.GameObjectCollisionSystem.ActiveCollisionObjects);
                 //data.Add("Sounds: " + BaseObject.sSystemRegistry.SoundSystem.);
 
-                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, FPSColor, textAlign);
+                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, DebugColor, textAlign);
             }
 
             //show Input Info
@@ -1724,7 +1728,7 @@ namespace Pyro
                 }
 
                 data.Reverse(0, data.Count);
-                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, FPSColor, textAlign);
+                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, DebugColor, textAlign);
             }
 
             //show volume info
@@ -1750,7 +1754,7 @@ namespace Pyro
                 data.Add("Sound Effects Volume: " + BaseObject.sSystemRegistry.SoundSystem.SoundEffectsVolume);
                 data.Add("Music Volume: " + BaseObject.sSystemRegistry.SoundSystem.MusicVolume);
 
-                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, FPSColor, textAlign);
+                FreshArchives.DrawStringAdvanced(spriteBatch, debugFont, data, xPos, yPos, lineHeight, DebugColor, textAlign);
             }
 
             if (debugShowCameraFollowDistance)

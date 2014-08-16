@@ -5,11 +5,13 @@
 - Esc - Pause
 - Enter - menu interact
 
+###Special controls
+- F1 - toggle time based movement vs key based movement.
+
 
 ###New Features
-- Input based movement 
-- Wrapping around simple empty tiled level. 
-- Included quick implementation of fire. Fire is still buggy.
+- Time Based Movement
+- Blocked backward movement
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder.
