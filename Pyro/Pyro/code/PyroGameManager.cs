@@ -7,6 +7,7 @@ using System.Text;
 using Archives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using System.Diagnostics;
 
 namespace Pyro
 {
@@ -19,12 +20,12 @@ namespace Pyro
         private const int FireDefaultLifetime = 20;//start length
         private static int BoardXOffset = 50;
         private static int BoardYOffset = 50;
-        private const int GameWidthInSlots = 35;
-        private const int GameHeightInSlots = 22;
+        private const int GameWidthInSlots = 20;
+        private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
-        private const float playerMoveTickDelay_Med = 0.35f;
+        private const float playerMoveTickDelay_Med = 0.15f;
         private const float playerMoveTickDelay_High = 0.25f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
@@ -47,7 +48,7 @@ namespace Pyro
         //timing and game logic
         public static GameState gameState;
         private float lastTickTime = -5000;
-        private float playerMoveTickDelay = playerMoveTickDelay_High;
+        private float playerMoveTickDelay = 0.01f;
         private Random random;
         private int fireDurration;
 
@@ -132,6 +133,8 @@ namespace Pyro
 
             SpawnLevelTiles();
             //TODO build random level?
+
+            SpawnFood();
         }
 
         private void SpawnPlayer()
@@ -143,7 +146,7 @@ namespace Pyro
             manager.Add(playerGameObject);
 
             //spawn at center
-            playerSlot.SetPosition(GameWidthInSlots / 2 + 1, GameHeightInSlots / 2 + 1);
+            playerSlot.SetPosition(GameWidthInSlots / 2, GameHeightInSlots / 2);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
 
             //spawn facing right
@@ -162,10 +165,9 @@ namespace Pyro
             manager.Add(fireGameObject);
 
             GameSlot fireSlot = GetGameSlot(playerSlot.Position);
-            
-            //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
             fireSlot.Child = fireGameObject;
-            
+            fireSlot.Type = GameSlotStatus.Fire;
+
             fireGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
 
             fires.Add(fireSlot);
@@ -187,8 +189,60 @@ namespace Pyro
                 fires.Remove(fire,true);
                 //clear slot
                 fire.Child = null;
+                fire.Type = GameSlotStatus.Empty;
             }
             deadFires.Clear();
+        }
+
+
+        /* Picks a random tile from the list, then returns first empty tile from there
+         */
+        private GameSlot GetRandomEmptySlot()
+        {
+            int max = slots.Count-1;
+            int rndStart = random.Next(max);
+            int rnd = rndStart;
+            
+            int tries = 0;
+            while(tries<max)
+            {
+                if(slots[rnd].Type==GameSlotStatus.Empty)
+                    return slots[rnd];
+                else
+                {
+                    rnd = (++rnd)%max;
+                }
+                tries++;
+            }
+            return null;
+        }
+
+        private void SpawnFood()
+        {
+            GameSlot foodSlot = GetRandomEmptySlot();
+            if (foodSlot == null)
+            {
+                //game has no empty tiles - shorted tail by 1 to allow space then try again
+                AdjustFireDurration(-1);
+                foodSlot = GetRandomEmptySlot();
+
+                Debug.Assert(foodSlot !=null, "Failed to spawn another food");
+                //Need to test this
+            }
+
+            GameObjectManager manager = sSystemRegistry.GameObjectManager;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+
+            GameObject foodGameObject = factory.SpawnFood(0, 0);
+            manager.Add(foodGameObject);
+
+            //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
+            foodSlot.Child = foodGameObject;
+            foodSlot.Type = GameSlotStatus.Food;
+
+            foodGameObject.SetPosition(GetSlotLocation(foodSlot.Position));
+
+            //fires.Add(fireSlot);
         }
 
         private void ProcessInput(float gameTime)
@@ -245,7 +299,7 @@ namespace Pyro
             return (x1 * -1 ==x2 && y1 * -1 ==y2);
         }
 
-        private bool MovePlayer(int xDif, int yDif)
+        private void MovePlayer(int xDif, int yDif)
         {
             
             int newX = playerSlot.X + xDif;
@@ -258,18 +312,51 @@ namespace Pyro
             else newY %= GameHeightInSlots;
 
             GameSlot newSlot = GetGameSlot(newX, newY);
-            if (newSlot.IsEmpty)
+            if (newSlot.Type == GameSlotStatus.Food)
             {
-                //create fire
-                KillFiresBy1();
-                SpawnFireAtPlayer();
-
-                playerSlot.SetPosition(newSlot.Position);
-                playerSlot.Child.facingDirection.X = xDif;
-                playerSlot.Child.facingDirection.Y = yDif;
-                return true;
+                EatFood(newSlot);
             }
-            return false;
+            KillFiresBy1();
+            if (newSlot.Type == GameSlotStatus.Fire)
+            {
+                HitFire(newSlot);
+            }
+
+            //create fire
+            SpawnFireAtPlayer();
+
+            playerSlot.SetPosition(newSlot.Position);
+            playerSlot.Child.facingDirection.X = xDif;
+            playerSlot.Child.facingDirection.Y = yDif;
+        }
+
+        private void HitFire(GameSlot slot)
+        {
+            slot.Child.life = 0;
+        }
+
+        private void AdjustFireDurration(int delta)
+        {
+            fireDurration += delta;
+            foreach (GameSlot fire in fires)
+            {
+                fire.Child.life += delta;
+            }
+        }
+
+        private void EatFood(GameSlot slot)
+        {
+            AdjustFireDurration(1);
+            Score++;
+
+            slot.Child.life--;
+            if (slot.Child.life == 0)
+            {
+                slot.Child = null;
+                slot.Type = GameSlotStatus.Empty;
+            }
+
+            SpawnFood();
         }
 
         public override void Update(float timeDelta, BaseObject parent)
@@ -447,6 +534,7 @@ namespace Pyro
     {
         Player,
         Fire,
+        Food,
         Empty,
     }
 
@@ -511,11 +599,6 @@ namespace Pyro
             {
                 Child.SetPosition(PyroGameManager.GetSlotLocation(position));
             }
-        }
-
-        public void Kill()
-        {
-            Child.FindByType<LifetimeComponent>().SetTimeUntilDeath(PyroGameObjectFactory.DeathAnimationDuration);
         }
 
         public void KillImedietly()
