@@ -52,10 +52,6 @@ namespace Pyro
         private Random random;
         private int fireDurration;
 
-        //assets
-        private SoundEffect lockInSound;
-
-
         public enum GameState
         {
             Loading,
@@ -76,10 +72,6 @@ namespace Pyro
             BoardXOffset = sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize)/2;
             BoardYOffset = sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
 
-            playerSlot = new GameSlot(0, 0);
-
-            lockInSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\button-3");
-            
             gameState = GameState.Loading;
         }
 
@@ -147,7 +139,7 @@ namespace Pyro
             manager.Add(playerGameObject);
 
             //spawn at center
-            playerSlot.SetPosition(GameWidthInSlots / 2, GameHeightInSlots / 2);
+            playerSlot = new GameSlot(GameWidthInSlots / 2, GameHeightInSlots / 2);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
 
             //spawn facing right

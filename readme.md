@@ -7,20 +7,16 @@
 
 ###Special controls
 - F1 - toggle time based movement vs key based movement.
+- F2 - Restart game
 
 
 ###New Features
-- Added food that can be eaten - Eating food makes your tail longer
-- Food spawn randomly (should be safe but tests were inconclusive)
-- Added functionality for multiple food types to extent or shorten length
-- Increased default move speed
-- Fixed bug where walking over fire would make it linger forever
 - New bug where you can mash keys and end up walking directly backwards
-- New bug where food can fails to spawn or fails to be eaten. Lingers after being walked on. Disconnect between GameSlot and Gameobject
+- New bug where food can fails to spawn or fails to be eaten. Lingers after being walked on. Disconnect between GameSlot and Gameobject. Might be spawning where the player is/was. PlayerSlot should be included in slots.
 
-- bug with restart
+- added game over collision when hitting fire
 - added sounds to food and fire hits
-- added game over colision when hitting fire
+
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder.

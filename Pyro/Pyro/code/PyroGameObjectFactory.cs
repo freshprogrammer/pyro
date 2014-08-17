@@ -12,11 +12,8 @@ namespace Pyro
 {
     public class PyroGameObjectFactory : GameObjectFactory
     {
-        private SoundEffect pistolSound;
         private SoundEffect playerDeathSound;
         private SoundEffect foodSound;
-        private SoundEffect winSound;
-        private SoundEffect ghostHitSound;
 
         public const float DeathAnimationDuration = 0.25f;
 
@@ -52,11 +49,8 @@ namespace Pyro
 
             ContentManager content = sSystemRegistry.Game.Content;
 
-            pistolSound = content.Load<SoundEffect>(@"sounds\pistol_shot_02a");
             playerDeathSound = content.Load<SoundEffect>(@"sounds\Sonic_Rings_Out");
             foodSound = content.Load<SoundEffect>(@"sounds\SonicRing");
-            winSound = content.Load<SoundEffect>(@"sounds\Sonic_Vanish");
-            ghostHitSound = content.Load<SoundEffect>(@"sounds\button-3");
         }
 
         protected override void InitializeStaticData()
