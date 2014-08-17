@@ -11,12 +11,7 @@
 
 
 ###New Features
-- New bug where you can mash keys and end up walking directly backwards
 - New bug where food can fails to spawn or fails to be eaten. Lingers after being walked on. Disconnect between GameSlot and Gameobject. Might be spawning where the player is/was. PlayerSlot should be included in slots.
-
-- added game over collision when hitting fire
-- added sounds to food and fire hits
-
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder.

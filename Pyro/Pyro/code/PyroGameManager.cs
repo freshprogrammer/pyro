@@ -44,6 +44,7 @@ namespace Pyro
         
         //input
         private PlayerController lastInput;
+        private Point lastMoveDirection = new Point(0, 0);
 
         //timing and game logic
         public static GameState gameState;
@@ -264,8 +265,8 @@ namespace Pyro
                 //Move Down Pressed
                 yDif = 1;
             }
-            
-            if(!isOpositeDirection(playerSlot.Child.facingDirection.X,playerSlot.Child.facingDirection.Y,xDif,yDif))
+
+            if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
             {
                 if(xDif!=0 || yDif!=0)
                 {
@@ -322,6 +323,8 @@ namespace Pyro
                 playerSlot.SetPosition(newSlot.Position);
                 playerSlot.Child.facingDirection.X = xDif;
                 playerSlot.Child.facingDirection.Y = yDif;
+                lastMoveDirection.X = xDif;
+                lastMoveDirection.Y = yDif;
             }
         }
 
