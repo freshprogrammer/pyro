@@ -13,8 +13,8 @@ namespace Pyro
     public class PyroGameObjectFactory : GameObjectFactory
     {
         private SoundEffect pistolSound;
-        private SoundEffect playerHitSound;
-        private SoundEffect ringSound;
+        private SoundEffect playerDeathSound;
+        private SoundEffect foodSound;
         private SoundEffect winSound;
         private SoundEffect ghostHitSound;
 
@@ -53,8 +53,8 @@ namespace Pyro
             ContentManager content = sSystemRegistry.Game.Content;
 
             pistolSound = content.Load<SoundEffect>(@"sounds\pistol_shot_02a");
-            playerHitSound = content.Load<SoundEffect>(@"sounds\Sonic_Rings_Out");
-            ringSound = content.Load<SoundEffect>(@"sounds\SonicRing");
+            playerDeathSound = content.Load<SoundEffect>(@"sounds\Sonic_Rings_Out");
+            foodSound = content.Load<SoundEffect>(@"sounds\SonicRing");
             winSound = content.Load<SoundEffect>(@"sounds\Sonic_Vanish");
             ghostHitSound = content.Load<SoundEffect>(@"sounds\button-3");
         }
@@ -277,6 +277,7 @@ namespace Pyro
             sprite.SetRenderMode(SpriteComponent.RenderMode.RotateToFacingDirection);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
+            lifetime.SetDeathSound(playerDeathSound);
 
             result.Add(render);
             result.Add(lifetime);
@@ -330,6 +331,7 @@ namespace Pyro
             }
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
+            lifetime.SetDeathSound(foodSound);
 
             result.Add(lifetime);
 
