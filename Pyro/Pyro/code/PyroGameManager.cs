@@ -186,8 +186,32 @@ namespace Pyro
                 fire.Contents = GameSlotStatus.Empty;
             }
             deadFires.Clear();
+            UpdateFireAnimations();
         }
 
+        private void UpdateFireAnimations()
+        {
+            float percentLife = 0;
+            foreach (GameSlot fire in fires)
+            {
+                if (fire.Child != null)
+                {
+                    var sprite = fire.Child.FindByType<SpriteComponent>();
+
+                    percentLife = 1f * fire.Child.life / fireDurration;
+                    if (percentLife > 0.9f) sprite.PlayAnimation((int)FireAnimation.Fire100);
+                    else if (percentLife > 0.8f) sprite.PlayAnimation((int)FireAnimation.Fire90);
+                    else if (percentLife > 0.7f) sprite.PlayAnimation((int)FireAnimation.Fire80);
+                    else if (percentLife > 0.6f) sprite.PlayAnimation((int)FireAnimation.Fire70);
+                    else if (percentLife > 0.5f) sprite.PlayAnimation((int)FireAnimation.Fire60);
+                    else if (percentLife > 0.4f) sprite.PlayAnimation((int)FireAnimation.Fire50);
+                    else if (percentLife > 0.3f) sprite.PlayAnimation((int)FireAnimation.Fire40);
+                    else if (percentLife > 0.2f) sprite.PlayAnimation((int)FireAnimation.Fire30);
+                    else if (percentLife > 0.1f) sprite.PlayAnimation((int)FireAnimation.Fire20);
+                    else if (percentLife > 0)    sprite.PlayAnimation((int)FireAnimation.Fire10);
+                }
+            }
+        }
 
         /* Picks a random tile from the list, then returns first empty tile from there
          */
@@ -358,6 +382,7 @@ namespace Pyro
             {
                 fire.Child.life += delta;
             }
+            UpdateFireAnimations();
         }
 
         private void EatFood(GameSlot slot)
