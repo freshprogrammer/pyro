@@ -44,6 +44,7 @@ namespace Pyro
         
         //input
         private PlayerController lastInput;
+        private Point lastMoveDirection = new Point(0, 0);
 
         //timing and game logic
         public static GameState gameState;
@@ -52,14 +53,11 @@ namespace Pyro
         private Random random;
         private int fireDurration;
 
-        //assets
-        private SoundEffect lockInSound;
-
-
         public enum GameState
         {
             Loading,
             PlayerMoving,
+            GameOver,
         }
 
         public PyroGameManager()
@@ -75,10 +73,6 @@ namespace Pyro
             BoardXOffset = sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize)/2;
             BoardYOffset = sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
 
-            playerSlot = new GameSlot(0, 0);
-
-            lockInSound = sSystemRegistry.Game.Content.Load<SoundEffect>(@"sounds\button-3");
-            
             gameState = GameState.Loading;
         }
 
@@ -146,7 +140,7 @@ namespace Pyro
             manager.Add(playerGameObject);
 
             //spawn at center
-            playerSlot.SetPosition(GameWidthInSlots / 2, GameHeightInSlots / 2);
+            playerSlot = new GameSlot(GameWidthInSlots / 2, GameHeightInSlots / 2);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
 
             //spawn facing right
@@ -166,7 +160,7 @@ namespace Pyro
 
             GameSlot fireSlot = GetGameSlot(playerSlot.Position);
             fireSlot.Child = fireGameObject;
-            fireSlot.Type = GameSlotStatus.Fire;
+            fireSlot.Contents = GameSlotStatus.Fire;
 
             fireGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
 
@@ -189,11 +183,35 @@ namespace Pyro
                 fires.Remove(fire,true);
                 //clear slot
                 fire.Child = null;
-                fire.Type = GameSlotStatus.Empty;
+                fire.Contents = GameSlotStatus.Empty;
             }
             deadFires.Clear();
+            UpdateFireAnimations();
         }
 
+        private void UpdateFireAnimations()
+        {
+            float percentLife = 0;
+            foreach (GameSlot fire in fires)
+            {
+                if (fire.Child != null)
+                {
+                    var sprite = fire.Child.FindByType<SpriteComponent>();
+
+                    percentLife = 1f * fire.Child.life / fireDurration;
+                    if (percentLife > 0.9f) sprite.PlayAnimation((int)FireAnimation.Fire100);
+                    else if (percentLife > 0.8f) sprite.PlayAnimation((int)FireAnimation.Fire90);
+                    else if (percentLife > 0.7f) sprite.PlayAnimation((int)FireAnimation.Fire80);
+                    else if (percentLife > 0.6f) sprite.PlayAnimation((int)FireAnimation.Fire70);
+                    else if (percentLife > 0.5f) sprite.PlayAnimation((int)FireAnimation.Fire60);
+                    else if (percentLife > 0.4f) sprite.PlayAnimation((int)FireAnimation.Fire50);
+                    else if (percentLife > 0.3f) sprite.PlayAnimation((int)FireAnimation.Fire40);
+                    else if (percentLife > 0.2f) sprite.PlayAnimation((int)FireAnimation.Fire30);
+                    else if (percentLife > 0.1f) sprite.PlayAnimation((int)FireAnimation.Fire20);
+                    else if (percentLife > 0)    sprite.PlayAnimation((int)FireAnimation.Fire10);
+                }
+            }
+        }
 
         /* Picks a random tile from the list, then returns first empty tile from there
          */
@@ -206,7 +224,7 @@ namespace Pyro
             int tries = 0;
             while(tries<max)
             {
-                if(slots[rnd].Type==GameSlotStatus.Empty)
+                if(slots[rnd].Contents==GameSlotStatus.Empty)
                     return slots[rnd];
                 else
                 {
@@ -238,7 +256,7 @@ namespace Pyro
 
             //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
             foodSlot.Child = foodGameObject;
-            foodSlot.Type = GameSlotStatus.Food;
+            foodSlot.Contents = GameSlotStatus.Food;
 
             foodGameObject.SetPosition(GetSlotLocation(foodSlot.Position));
 
@@ -271,8 +289,8 @@ namespace Pyro
                 //Move Down Pressed
                 yDif = 1;
             }
-            
-            if(!isOpositeDirection(playerSlot.Child.facingDirection.X,playerSlot.Child.facingDirection.Y,xDif,yDif))
+
+            if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
             {
                 if(xDif!=0 || yDif!=0)
                 {
@@ -312,27 +330,49 @@ namespace Pyro
             else newY %= GameHeightInSlots;
 
             GameSlot newSlot = GetGameSlot(newX, newY);
-            if (newSlot.Type == GameSlotStatus.Food)
+            if (newSlot.Contents == GameSlotStatus.Food)
             {
                 EatFood(newSlot);
             }
             KillFiresBy1();
-            if (newSlot.Type == GameSlotStatus.Fire)
+            if (newSlot.Contents == GameSlotStatus.Fire)
             {
                 HitFire(newSlot);
             }
+            else
+            {
+                //create fire
+                SpawnFireAtPlayer();
 
-            //create fire
-            SpawnFireAtPlayer();
-
-            playerSlot.SetPosition(newSlot.Position);
-            playerSlot.Child.facingDirection.X = xDif;
-            playerSlot.Child.facingDirection.Y = yDif;
+                playerSlot.SetPosition(newSlot.Position);
+                playerSlot.Child.facingDirection.X = xDif;
+                playerSlot.Child.facingDirection.Y = yDif;
+                lastMoveDirection.X = xDif;
+                lastMoveDirection.Y = yDif;
+            }
         }
 
         private void HitFire(GameSlot slot)
         {
-            slot.Child.life = 0;
+            bool liveAfterFire = false;
+            if (liveAfterFire)
+            {
+                slot.Child.life = 0;
+            }
+            else
+            {
+                KillPlayer();
+                gameState = GameState.GameOver;
+            }
+        }
+
+        private void KillPlayer()
+        {
+            playerSlot.Child.facingDirection.X = 0;
+            playerSlot.Child.facingDirection.Y = 0;
+            playerSlot.Child.life = 0;
+            playerSlot.Child = null;
+            playerSlot = null;//TODO this should peoably be a reset and not a null
         }
 
         private void AdjustFireDurration(int delta)
@@ -342,6 +382,7 @@ namespace Pyro
             {
                 fire.Child.life += delta;
             }
+            UpdateFireAnimations();
         }
 
         private void EatFood(GameSlot slot)
@@ -353,7 +394,7 @@ namespace Pyro
             if (slot.Child.life == 0)
             {
                 slot.Child = null;
-                slot.Type = GameSlotStatus.Empty;
+                slot.Contents = GameSlotStatus.Empty;
             }
 
             SpawnFood();
@@ -365,22 +406,19 @@ namespace Pyro
             {
                 float gameTime = sSystemRegistry.TimeSystem.getGameTime();
 
-                float timePerTick;
                 if (gameState == GameState.PlayerMoving)
                 {
                     //processInput must be outsude the tick so it can be called faster for faster controls and quick dropping
                     ProcessInput(gameTime);
-                    timePerTick = playerMoveTickDelay;
+                    if (gameTime - lastTickTime > playerMoveTickDelay)
+                    {
+                        lastTickTime = gameTime;
+                        Tick();
+                    }
                 }
-                else
+                else if(gameState==GameState.GameOver)
                 {
-                    timePerTick = gravityTickDelay;
-                }
-
-                if (gameTime - lastTickTime > timePerTick)
-                {
-                    lastTickTime = gameTime;
-                    Tick();
+                    //do nothing
                 }
             }
         }
@@ -543,10 +581,10 @@ namespace Pyro
         public static GameSlot Blank = new GameSlot(0, 0);
 
         public GameObject Child;
-        public GameSlotStatus Type = GameSlotStatus.Empty;
+        public GameSlotStatus Contents = GameSlotStatus.Empty;
         private Point position = Point.Zero;
 
-        public bool IsEmpty { get { return Type == GameSlotStatus.Empty; } }
+        public bool IsEmpty { get { return Contents == GameSlotStatus.Empty; } }
 
         public int X { get { return position.X; } }
         public int Y { get { return position.Y; } }
@@ -566,13 +604,13 @@ namespace Pyro
         public void EmptySlot()
         {
             Child = null;
-            Type = GameSlotStatus.Empty;
+            Contents = GameSlotStatus.Empty;
         }
 
         public void Setup(GameSlotStatus type, GameObject o)
         {
             Child = o;
-            this.Type = type;
+            this.Contents = type;
         }
 
         public void Move(int xDif, int yDif)
@@ -612,21 +650,21 @@ namespace Pyro
             position.X = src.position.X;
             position.Y = src.position.Y;
             Child = src.Child;
-            Type = src.Type;
+            Contents = src.Contents;
         }
 
         public GameSlot Clone()
         {
             GameSlot result = new GameSlot(position.X, position.Y);
             result.Child = Child;
-            result.Type = Type;
+            result.Contents = Contents;
             return result;
         }
 
         public void TransferSlotFrom(GameSlot src)
         {
             Child = src.Child;
-            Type = src.Type;
+            Contents = src.Contents;
             src.EmptySlot();
 
             Child.SetPosition(PyroGameManager.GetSlotLocation(X, Y));
@@ -634,7 +672,7 @@ namespace Pyro
 
         public override string ToString()
         {
-            return "GameSlot(" + X + "," + Y + "," + Type + ")";
+            return "GameSlot(" + X + "," + Y + "," + Contents + ")";
         }
     }
 }
