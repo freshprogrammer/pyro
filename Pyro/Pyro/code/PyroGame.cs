@@ -69,8 +69,8 @@ namespace Pyro
         private bool fixedRenderSpeed = true;
 
         // state info
-        public GameStates previousGameState;
-        public GameStates gameState;
+        public GameApplicationState previousGameState;
+        public GameApplicationState gameState;
         private int lastGameEvent = -1;
         private float timeTillGameEvent = 0;
 
@@ -396,7 +396,7 @@ namespace Pyro
 
             levelSystem.ClearObjects();
 
-            gameState = GameStates.MainMenu;
+            gameState = GameApplicationState.MainMenu;
             mainMenuTree.SetMenu(mainMenu);
         }
 
@@ -904,7 +904,7 @@ namespace Pyro
 
             pyroManager.StartGame(newGameLevelNo, newGameSpeedValue);
             
-            gameState = GameStates.MainLoop;
+            gameState = GameApplicationState.MainLoop;
         }
 
         private void GotoFirstLevel_Animated() { GotoFirstLevel(true); }
@@ -914,18 +914,18 @@ namespace Pyro
         {
             ///continue...
             MediaPlayer.Stop();
+            MediaPlayer.IsRepeating = true;
             MediaPlayer.Play(backgroundGameMusic);
-            MediaPlayer.IsRepeating = true ;
 
             //BUG reset systems - like vibration - playerInput - gameEvents
-            gameState = GameStates.LoadingLevel;
+            gameState = GameApplicationState.LoadingLevel;
 
             levelSystem.GotoFirstLevel(animated, StartLevel);
         }
 
         private void GotoNextLevel_Animated(bool animated, Action postAnimationAction)
         {
-            gameState = GameStates.LoadingLevel;
+            gameState = GameApplicationState.LoadingLevel;
 
             levelSystem.GotoNextLevel(animated, StartLevel);
         }
@@ -1075,11 +1075,11 @@ namespace Pyro
                         //act on controller events - not held buttons - mostly for menu
                         Buttons[] bottonsToListenFor = { };
 
-                        if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                        if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                         {
                             bottonsToListenFor = new Buttons[] { Buttons.Back, Buttons.Start, Buttons.LeftShoulder, Buttons.RightShoulder };
                         }
-                        else if (gameState == GameStates.MainMenu || gameState == GameStates.Paused)
+                        else if (gameState == GameApplicationState.MainMenu || gameState == GameApplicationState.Paused)
                         {
                             bottonsToListenFor = new Buttons[] { Buttons.LeftThumbstickDown, Buttons.LeftThumbstickUp, Buttons.LeftThumbstickRight, Buttons.LeftThumbstickLeft, Buttons.DPadDown, Buttons.DPadUp, Buttons.DPadLeft, Buttons.DPadRight, Buttons.A, Buttons.B, Buttons.Start };
                         }
@@ -1092,22 +1092,22 @@ namespace Pyro
                                 if (oldGamePadState.IsButtonUp(b))
                                 {
                                     //Key pressed
-                                    if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                                    if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                                     {
                                         ControllerEvent_Game(b, true);
                                     }
-                                    else if (gameState == GameStates.MainMenu || gameState == GameStates.Paused)
+                                    else if (gameState == GameApplicationState.MainMenu || gameState == GameApplicationState.Paused)
                                         ControllerEvent_MainMenu(b, true);
                                 }
                             }
                             else if (oldGamePadState.IsButtonDown(b))
                             {
                                 //Controller event released
-                                if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                                if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                                 {
                                     ControllerEvent_Game(b, false);
                                 }
-                                else if (gameState == GameStates.MainMenu || gameState == GameStates.Paused)
+                                else if (gameState == GameApplicationState.MainMenu || gameState == GameApplicationState.Paused)
                                     ControllerEvent_MainMenu(b, false);
                             }
                         }
@@ -1129,18 +1129,18 @@ namespace Pyro
                     if (!oldKeyState.IsKeyDown(key))
                     {
                         //Key pressed
-                        if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                        if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                             KeyEvent_Game(key, true);
-                        else if (gameState == GameStates.MainMenu || gameState == GameStates.Paused)
+                        else if (gameState == GameApplicationState.MainMenu || gameState == GameApplicationState.Paused)
                             KeyEvent_MainMenu(key, true);
                     }
                 }
                 else if (oldKeyState.IsKeyDown(key))
                 {
                     //Key released
-                    if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                    if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                         KeyEvent_Game(key, false);
-                    else if (gameState == GameStates.MainMenu || gameState == GameStates.Paused)
+                    else if (gameState == GameApplicationState.MainMenu || gameState == GameApplicationState.Paused)
                         KeyEvent_MainMenu(key, false);
                 }
             }
@@ -1148,7 +1148,7 @@ namespace Pyro
             // Update saved state.
             oldKeyState = keyState;
 
-            if (gameState == GameStates.MainLoop)
+            if (gameState == GameApplicationState.MainLoop)
             {
                 UpdatePlayerInput(oldGamePadState, oldKeyState);
             }
@@ -1342,26 +1342,6 @@ namespace Pyro
                     }
                     //dont care about release
                     break;
-                case Keys.D1://dev stuff
-                    if (pressed)
-                    {
-                        //load next level
-                        GotoNextLevel_Animated(false, StartLevel);
-                    }
-                    //dont care about release
-                    break;
-                case Keys.D2://dev stuff
-                    if (pressed)
-                    {
-                        //return to main menu
-                        //GotoMainMenu();
-                        //BaseObject.sSystemRegistry.VibrationSystem.Vibrate(PlayerIndex.One, 0.7f, 0.7f, 0.75f);
-                    }
-                    //dont care about release
-                    break;
-                case Keys.D3://dev stuff
-                    break;
-
             }
         }
 
@@ -1370,11 +1350,11 @@ namespace Pyro
         /// </summary>
         public void Paused()
         {
-            if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+            if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
             {
                 //pause game
                 previousGameState = gameState;
-                gameState = GameStates.Paused;
+                gameState = GameApplicationState.Paused;
 
                 if (pauseMusicOnPause)
                     BaseObject.sSystemRegistry.SoundSystem.PauseAllMusic();
@@ -1382,7 +1362,7 @@ namespace Pyro
 
                 mainMenuTree.SetMenu(pauseMenu);
             }
-            else if (gameState == GameStates.Paused)
+            else if (gameState == GameApplicationState.Paused)
             {
                 //clear any keys that were pressed when game was paused
                 PlayerController.Reset();
@@ -1428,22 +1408,22 @@ namespace Pyro
                         mainMenuTree.Update(updateSeconds);
                     }
 
-                    if (gameState == GameStates.MainLoop || gameState == GameStates.LoadingLevel)
+                    if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.LoadingLevel)
                     {
                         gameRoot.Update(updateSeconds, null);
                         renderSystem.SwapInNextQueue();
 
-                        if (gameState == GameStates.MainLoop)
+                        if (gameState == GameApplicationState.MainLoop)
                         {
                             HandleGameEvent(updateSeconds);
                             totalPlayTime = totalPlayTime.Add(gameTime.ElapsedGameTime);
                         }
-                        else if (gameState == GameStates.LoadingLevel)
+                        else if (gameState == GameApplicationState.LoadingLevel)
                         {
                             BaseObject.sSystemRegistry.LevelSystem.Update(updateSeconds, null);
                         }
                     }
-                    else if (gameState == GameStates.MainMenu)
+                    else if (gameState == GameApplicationState.MainMenu)
                     {
                         mainMenuTree.Update(updateSeconds);
                     }
@@ -1473,9 +1453,9 @@ namespace Pyro
 
             GraphicsDevice.Clear(Color.Black);
 
-            if (gameState == GameStates.MainLoop || gameState == GameStates.Paused || gameState == GameStates.LoadingLevel || gameState == GameStates.LevelEditor)
+            if (gameState == GameApplicationState.MainLoop || gameState == GameApplicationState.Paused || gameState == GameApplicationState.LoadingLevel || gameState == GameApplicationState.LevelEditor)
             {
-                renderSystem.Draw(gameState != GameStates.MainLoop || !this.IsActive);
+                renderSystem.Draw(gameState != GameApplicationState.MainLoop || !this.IsActive);
 
                 if (mainMenuTree.RootMenu == pauseMenu)
                 {
@@ -1483,7 +1463,7 @@ namespace Pyro
                     mainMenuTree.Draw(gameTime, spriteBatch);
                 }
             }
-            else if (gameState == GameStates.MainMenu)
+            else if (gameState == GameApplicationState.MainMenu)
             {
                 mainMenuTree.Draw(gameTime, spriteBatch);
             }
@@ -1793,7 +1773,7 @@ namespace Pyro
             return result;
         }
     }
-    public enum GameStates
+    public enum GameApplicationState
     {
         LevelEditor,
         MainMenu,
