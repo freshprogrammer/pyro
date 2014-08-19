@@ -8,56 +8,28 @@ namespace Pyro
 {
     class PyroHudSystem : HudSystem
     {
-        
-        private StringRenderObject levelTitle;
-        private StringRenderObject level;
-        private StringRenderObject speedTitle;
-        private StringRenderObject speed;
+        private StringRenderObject fuelTitle;
+        private StringRenderObject fuel;
         private StringRenderObject scoreTitle;
         private StringRenderObject score;
         private StringRenderObject highScoreTitle;
         private StringRenderObject highScore;
+        private StringRenderObject lastScoreTitle;
+        private StringRenderObject lastScore;
 
         private float scale = 2f;
         
         public override void Setup()
         {
             Reset();
-            
-            int rightXOffset = 950;
-            int rightXSubOffset = rightXOffset + 32 * 9;
-            int rightYOffset = 400;
+
             int verticalSubSeperation = 32;
-            int verticalSeperation = 32*3;
-
-            levelTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Level");
-            levelTitle.Priority = SortConstants.HUD;
-            levelTitle.SetPosition(rightXOffset, rightYOffset);
-            levelTitle.SetScale(scale, scale);
-
-            speedTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Speed");
-            speedTitle.Priority = SortConstants.HUD;
-            speedTitle.SetPosition(rightXOffset, rightYOffset + verticalSeperation);
-            speedTitle.SetScale(scale, scale);
-
-            level = new StringRenderObject(new KromskyFontSpriteSheet(), "0000");
-            level.RightAligned = true;
-            level.Priority = SortConstants.HUD;
-            level.SetPosition(rightXSubOffset, rightYOffset + verticalSubSeperation);
-            level.SetScale(scale, scale);
-
-            speed = new StringRenderObject(new KromskyFontSpriteSheet(), "Only");
-            speed.RightAligned = true;
-            speed.Priority = SortConstants.HUD;
-            speed.SetPosition(rightXSubOffset, rightYOffset + verticalSeperation + verticalSubSeperation);
-            speed.SetScale(scale, scale);
-
-
+            int verticalSeperation = 32 * 3;
             int leftXOffset = 20;
             int leftXSubOffset = leftXOffset + 32 * 9;
             int leftYOffset = 75;
 
-            highScoreTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Top");
+            highScoreTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "High Score");
             highScoreTitle.Priority = SortConstants.HUD;
             highScoreTitle.SetPosition(leftXOffset, leftYOffset);
             highScoreTitle.SetScale(scale, scale);
@@ -68,21 +40,43 @@ namespace Pyro
             highScore.SetPosition(leftXSubOffset, leftYOffset + verticalSubSeperation);
             highScore.SetScale(scale, scale);
 
+            lastScoreTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Last Score");
+            lastScoreTitle.Priority = SortConstants.HUD;
+            lastScoreTitle.SetPosition(leftXOffset, leftYOffset + verticalSeperation);
+            lastScoreTitle.SetScale(scale, scale);
+                
+            lastScore = new StringRenderObject(new KromskyFontSpriteSheet(), "0000000");
+            lastScore.RightAligned = true;
+            lastScore.Priority = SortConstants.HUD;
+            lastScore.SetPosition(leftXSubOffset, leftYOffset + verticalSeperation + verticalSubSeperation);
+            lastScore.SetScale(scale, scale);
+
             scoreTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Score");
             scoreTitle.Priority = SortConstants.HUD;
-            scoreTitle.SetPosition(leftXOffset, leftYOffset + verticalSeperation);
+            scoreTitle.SetPosition(leftXOffset, leftYOffset + 2 * verticalSeperation);
             scoreTitle.SetScale(scale, scale);
 
             score = new StringRenderObject(new KromskyFontSpriteSheet(), "0000000");
             score.RightAligned = true;
             score.Priority = SortConstants.HUD;
-            score.SetPosition(leftXSubOffset, leftYOffset + verticalSeperation + verticalSubSeperation);
+            score.SetPosition(leftXSubOffset, leftYOffset + 2 * verticalSeperation + verticalSubSeperation);
             score.SetScale(scale, scale);
+
+            fuelTitle = new StringRenderObject(new KromskyFontSpriteSheet(), "Fuel");
+            fuelTitle.Priority = SortConstants.HUD;
+            fuelTitle.SetPosition(leftXOffset, leftYOffset + 3 * verticalSeperation);
+            fuelTitle.SetScale(scale, scale);
+            
+            fuel = new StringRenderObject(new KromskyFontSpriteSheet(), "0000000");
+            fuel.RightAligned = true;
+            fuel.Priority = SortConstants.HUD;
+            fuel.SetPosition(leftXSubOffset, leftYOffset + 3 * verticalSeperation + verticalSubSeperation);
+            fuel.SetScale(scale, scale);
         }
 
         public override void Reset()
         {
-            Enabled = false;
+            Enabled = true;
         }
 
         public override void Update(float secondsDelta, BaseObject parent)
@@ -93,22 +87,22 @@ namespace Pyro
                 if (manager != null)
                 {
                     //update to render
-                    levelTitle.Update(secondsDelta, this);
-                    speedTitle.Update(secondsDelta, this);
-                    scoreTitle.Update(secondsDelta, this);
                     highScoreTitle.Update(secondsDelta, this);
-
-                    score.SetText(PyroGameManager.Score.ToString());
-                    score.Update(secondsDelta, this);
+                    lastScoreTitle.Update(secondsDelta, this);
+                    scoreTitle.Update(secondsDelta, this);
+                    fuelTitle.Update(secondsDelta, this);
 
                     highScore.SetText(PyroGameManager.HighScore.ToString());
                     highScore.Update(secondsDelta, this);
 
-                    level.SetText(PyroGameManager.LevelNo.ToString());
-                    level.Update(secondsDelta, this);
+                    lastScore.SetText(PyroGameManager.LastScore.ToString());
+                    lastScore.Update(secondsDelta, this);
 
-                    speed.SetText(PyroGameManager.GetSpeedName(PyroGameManager.Speed));
-                    speed.Update(secondsDelta, this);
+                    score.SetText(PyroGameManager.Score.ToString());
+                    score.Update(secondsDelta, this);
+
+                    fuel.SetText(PyroGameManager.FuelCollected.ToString());
+                    fuel.Update(secondsDelta, this);
                 }
             }
         }

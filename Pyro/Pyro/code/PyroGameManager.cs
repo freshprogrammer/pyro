@@ -15,13 +15,13 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
-        public static bool TimeBasedMovement = false;
+        public static bool TimeBasedMovement = true;
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
-        private static int BoardYOffset = 50;
-        private const int GameWidthInSlots = 4;
-        private const int GameHeightInSlots = 4;
+        private static int BoardYOffset = 0;
+        private const int GameWidthInSlots = 20;
+        private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
@@ -31,10 +31,12 @@ namespace Pyro
         private const float timePerDownPress = 0.05f;
 
         //HUD & score variables
-        public static int Score = 0;
-        public static int HighScore = 1000;
-        public static int LevelNo = 0;
         public static int Speed = 0;
+        private static int scoreSinceLastFuel = 0;
+        public static int Score = 0;
+        public static int FuelCollected = 0;
+        public static int LastScore = 0;
+        public static int HighScore = 3;
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
@@ -67,12 +69,13 @@ namespace Pyro
 #if TestEnvironment
             random = new Random(2);
 #endif
+            Score = 0;
             tileSlots = GenerateSlots();
             playerSlot = new GameSlot(0, 0);
 
             //center tiles
-            BoardXOffset = sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize)/2;
-            BoardYOffset = sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
+            BoardXOffset = BoardXOffset + sSystemRegistry.ContextParameters.GameWidth / 2 - (GameWidthInSlots * SlotSize) / 2;
+            BoardYOffset = BoardYOffset + sSystemRegistry.ContextParameters.GameHeight / 2 - (GameHeightInSlots * SlotSize) / 2;
 
             gameState = GameState.Loading;
         }
@@ -82,7 +85,6 @@ namespace Pyro
             Reset();
 
             Speed = speed;
-            LevelNo = level;
             switch (Speed)
             {
                 default:
@@ -97,7 +99,7 @@ namespace Pyro
 
         public void StartLevel()
         {
-            FillNewLevel(LevelNo);
+            FillNewLevel();
 
             fireDurration = FireDefaultLifetime;
 
@@ -106,10 +108,19 @@ namespace Pyro
 
         public override void Reset()
         {
+            LastScore = Score;
+            if (LastScore > HighScore)
+                HighScore = LastScore;
             Score = 0;
+            FuelCollected = 0;
+            scoreSinceLastFuel = 0;
+
             ClearSlots(tileSlots);
             ClearSlots(fires);
+            fires.Clear();
             ClearSlots(deadFires);
+            deadFires.Clear();
+
             lastMoveDirection = new Point(0, 0);
 
             lastInput = new PlayerController();
@@ -164,19 +175,18 @@ namespace Pyro
                 GameObject tile = factory.SpawnTileEmpty(0,0);
                 manager.Add(tile);
 
-                slot.Setup(GameSlotStatus.Empty, tile);
+                slot.Setup(GameSlotStatus.Empty, null);
 
                 tile.SetPosition(GetSlotLocation(slot.Position));
             }
         }
 
-        public void FillNewLevel(int LevelNo)
+        public void FillNewLevel()
         {
-            SpawnPlayer();
-
             SpawnLevelTiles();
             //TODO build random level?
 
+            SpawnPlayer();
             SpawnFuel();
         }
 
@@ -404,14 +414,14 @@ namespace Pyro
             playerSlot.Child.facingDirection.X = xDif;
             playerSlot.Child.facingDirection.Y = yDif;
 
-            KillFiresBy1();
             if (newSlot.Contents == GameSlotStatus.Fuel)
             {
                 ConsumeFuel(newSlot);
                 spawnNewFuel = true;
                 moved = true;
             }
-            else if (newSlot.Contents == GameSlotStatus.Fire)
+            KillFiresBy1();//has to be after consume fuel to make sure last peice of trail doesnt move when consuming
+            if (newSlot.Contents == GameSlotStatus.Fire)
             {
                 HitFire(newSlot);
 
@@ -424,9 +434,12 @@ namespace Pyro
 
             if (moved)
             {
+                UpdateScore(ScoredAction.Move);
                 //move player
                 //create fire
-                SpawnFire(oldSlot);
+                oldSlot.Contents = GameSlotStatus.Empty;
+                if(fireDurration>0)
+                    SpawnFire(oldSlot);
                 newSlot.Contents = GameSlotStatus.Player;
                 playerSlot.SetPosition(newSlot.Position);
                 lastMoveDirection.X = xDif;
@@ -435,6 +448,25 @@ namespace Pyro
 
             if(spawnNewFuel)
                 SpawnFuel();
+
+            GenFireReport();
+        }
+
+        private void GenFireReport()
+        {
+            int fires = 0;
+
+            for (int xx = 0; xx < 16; xx++)
+            {
+                fires = 0;
+                foreach (GameSlot s in tileSlots)
+                {
+                    if (s.Contents == GameSlotStatus.Fire && s.Child.life==xx)
+                        fires++;
+                }
+                if(fires>1)
+                    Console.WriteLine("{0} fires at {1} life", fires, xx);
+            }
         }
 
         private void HitFire(GameSlot slot)
@@ -460,10 +492,14 @@ namespace Pyro
             playerSlot = null;//TODO this should peoably be a reset and not a null
         }
 
-        private void AdjustFireDurration(int delta)
+        private bool AdjustFireDurration(int delta)
         {
+            int oldFireDurration = fireDurration;
+            int reserved = 3;
             fireDurration += delta;
-            Debug.Assert(fireDurration <= GameSlotCount);
+            if (GameSlotCount - fireDurration < reserved)
+                fireDurration = GameSlotCount - reserved;//minus 3 for player and 1 additional food and 1 blank space
+            Debug.Assert(fireDurration <= GameSlotCount - reserved);
             foreach (GameSlot fire in fires)
             {
                 fire.Child.life += delta;
@@ -471,12 +507,14 @@ namespace Pyro
             if(delta<0)
                 ClearDeadFires();
             UpdateFireAnimations();
+            return oldFireDurration == fireDurration;
         }
 
         private void ConsumeFuel(GameSlot slot)
         {
+            FuelCollected++;
             AdjustFireDurration(1);
-            Score++;
+            UpdateScore(ScoredAction.CollectFuel);
 
             slot.Child.life--;
             if (slot.Child.life == 0)
@@ -538,33 +576,22 @@ namespace Pyro
             newSlot.TransferSlotFrom(slot);
         }
 
-        private void CalcScore()
+        private void UpdateScore(ScoredAction action)
         {
-            Score = -1;
-
-            if (Score > HighScore)
-                HighScore = Score;
-        }
-
-        public void LevelOver(bool fail)
-        {
-            if (!fail)
+            switch (action)
             {
-                //advance to next level
-                LevelNo++;
-                StartLevel();
+                case ScoredAction.Move:
+                    if (scoreSinceLastFuel < FuelCollected)
+                    {
+                        Score++;//+1 each move up to the tail length
+                        scoreSinceLastFuel++;
+                    }
+                    break;
+                case ScoredAction.CollectFuel:
+                    scoreSinceLastFuel = 0;
+                    Score+=FuelCollected;
+                    break;
             }
-            else
-            {
-                //failed level
-                Score = 0;
-                gameState = GameState.Loading;
-            }
-        }
-
-        public void UpdateScore()
-        {
-            CalcScore();
         }
 
         public static string GetSpeedName(int speed)
@@ -617,6 +644,12 @@ namespace Pyro
         Fire,
         Fuel,
         Empty,
+    }
+
+    enum ScoredAction
+    {
+        Move,
+        CollectFuel,
     }
 
     class GameSlot
@@ -715,7 +748,10 @@ namespace Pyro
 
         public override string ToString()
         {
-            return "GameSlot(" + X + "," + Y + "," + Contents + ")";
+            if (Child != null)
+                return "GameSlot(" + X + "," + Y + "," + Contents + ") - Life:" + Child.life;
+            else
+                return "GameSlot(" + X + "," + Y + "," + Contents + ")";
         }
     }
 }
