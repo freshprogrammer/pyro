@@ -17,7 +17,7 @@ namespace Pyro
         public const int SlotSize = 32;
         public static bool TimeBasedMovement = true;
 
-        private const int FireDefaultLifetime = 20;//start length
+        private const int FireDefaultLifetime = 4;//start length
         private static int BoardXOffset = 50;
         private static int BoardYOffset = 50;
         private const int GameWidthInSlots = 20;
@@ -128,7 +128,7 @@ namespace Pyro
             SpawnLevelTiles();
             //TODO build random level?
 
-            SpawnFood();
+            SpawnFuel();
         }
 
         private void SpawnPlayer()
@@ -235,30 +235,30 @@ namespace Pyro
             return null;
         }
 
-        private void SpawnFood()
+        private void SpawnFuel()
         {
-            GameSlot foodSlot = GetRandomEmptySlot();
-            if (foodSlot == null)
+            GameSlot fuelSlot = GetRandomEmptySlot();
+            if (fuelSlot == null)
             {
                 //game has no empty tiles - shorted tail by 1 to allow space then try again
                 AdjustFireDurration(-1);
-                foodSlot = GetRandomEmptySlot();
+                fuelSlot = GetRandomEmptySlot();
 
-                Debug.Assert(foodSlot !=null, "Failed to spawn another food");
+                Debug.Assert(fuelSlot !=null, "Failed to spawn another fuel");
                 //Need to test this
             }
 
             GameObjectManager manager = sSystemRegistry.GameObjectManager;
             PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            GameObject foodGameObject = factory.SpawnFood(0, 0);
-            manager.Add(foodGameObject);
+            GameObject fuelGameObject = factory.SpawnFuel(0, 0);
+            manager.Add(fuelGameObject);
 
             //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
-            foodSlot.Child = foodGameObject;
-            foodSlot.Contents = GameSlotStatus.Food;
+            fuelSlot.Child = fuelGameObject;
+            fuelSlot.Contents = GameSlotStatus.Fuel;
 
-            foodGameObject.SetPosition(GetSlotLocation(foodSlot.Position));
+            fuelGameObject.SetPosition(GetSlotLocation(fuelSlot.Position));
 
             //fires.Add(fireSlot);
         }
@@ -330,9 +330,9 @@ namespace Pyro
             else newY %= GameHeightInSlots;
 
             GameSlot newSlot = GetGameSlot(newX, newY);
-            if (newSlot.Contents == GameSlotStatus.Food)
+            if (newSlot.Contents == GameSlotStatus.Fuel)
             {
-                EatFood(newSlot);
+                ConsumeFuel(newSlot);
             }
             KillFiresBy1();
             if (newSlot.Contents == GameSlotStatus.Fire)
@@ -385,7 +385,7 @@ namespace Pyro
             UpdateFireAnimations();
         }
 
-        private void EatFood(GameSlot slot)
+        private void ConsumeFuel(GameSlot slot)
         {
             AdjustFireDurration(1);
             Score++;
@@ -397,7 +397,7 @@ namespace Pyro
                 slot.Contents = GameSlotStatus.Empty;
             }
 
-            SpawnFood();
+            SpawnFuel();
         }
 
         public override void Update(float timeDelta, BaseObject parent)
@@ -572,7 +572,7 @@ namespace Pyro
     {
         Player,
         Fire,
-        Food,
+        Fuel,
         Empty,
     }
 
