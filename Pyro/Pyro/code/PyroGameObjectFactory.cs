@@ -139,6 +139,13 @@ namespace Pyro
             //vars.GetVariable("scorePerRing", ref scorePerRing, true);
         }
 
+        public override GameObject Spawn(int objectType, float x, float y, Vector2 facingDir, int priority)
+        {
+            if(objectType ==(int)PyroGameObjectTypes.PlayerDead)
+                return SpawnPlayerDead(x,y,facingDir);
+            return null;
+        }
+
         public GameObject SpawnBackgroundPlate(float positionX, float positionY)
         {
             const int width = 1280;
@@ -243,7 +250,7 @@ namespace Pyro
             if (staticData == null)
             {
                 ContentManager content = sSystemRegistry.Game.Content;
-                int staticObjectCount = 3;
+                int staticObjectCount = 1;
                 staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
 
                 // Animation Data
@@ -272,7 +279,73 @@ namespace Pyro
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
             lifetime.SetDeathSound(playerDeathSound);
+            //lifetime.SetObjectToSpawnOnDeath((int)PyroGameObjectTypes.PlayerDead, false);
 
+            result.Add(render);
+            result.Add(lifetime);
+            result.Add(sprite);
+
+            AddStaticData(thisGameObjectType, result, sprite);
+
+            sprite.PlayAnimation((int)Animations.Idle);
+
+            return result;
+        }
+
+        public GameObject SpawnPlayerDead(float positionX, float positionY, Vector2 facingDir)
+        {
+            int thisGameObjectType = (int)PyroGameObjectTypes.PlayerDead;
+            GameObject result = mGameObjectPool.Allocate();
+            result.SetPosition(positionX, positionY);
+            result.ActivationRadius = mActivationRadius_AlwaysActive;
+            result.width = 32;
+            result.height = 32;
+            result.facingDirection = facingDir;
+
+            result.life = 1;
+            result.team = GameObject.Team.NONE;
+
+
+            FixedSizeArray<BaseObject> staticData = GetStaticData(thisGameObjectType);
+
+            if (staticData == null)
+            {
+                ContentManager content = sSystemRegistry.Game.Content;
+                int staticObjectCount = 1;
+                staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
+
+                // Animation Data
+                float animationDelay = 0.16f;
+                Rectangle crop32f = new Rectangle(32, 0, -32, 32);
+                //Idle
+                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 2);
+                idle.Loop = true;
+                //idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32f));
+                //idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32f));
+
+                Rectangle crop64 = new Rectangle(0, 0, 64, 64);
+                Rectangle crop64f = new Rectangle(64, 0, -64, 64);
+                
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64f));
+
+                //animations
+                staticData.Add(idle);
+
+                SetStaticData(thisGameObjectType, staticData);
+            }
+
+            RenderComponent render = (RenderComponent)AllocateComponent(typeof(RenderComponent));
+            render.Priority = PyroSortConstants.PLAYER;
+            render.CameraRelative = true;
+
+            SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
+            sprite.SetSize((int)result.width, (int)result.height);
+            sprite.SetRenderComponent(render);
+            sprite.SetRenderMode(SpriteComponent.RenderMode.RotateToFacingDirection);
+
+            LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
+            
             result.Add(render);
             result.Add(lifetime);
             result.Add(sprite);
@@ -503,6 +576,7 @@ namespace Pyro
         Tile_Blocked = 1,
         Player = 2,
 
+        PlayerDead,
         Background_Plate,
         Fire,
         Fuel,

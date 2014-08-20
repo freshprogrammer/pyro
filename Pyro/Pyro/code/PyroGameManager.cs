@@ -485,20 +485,20 @@ namespace Pyro
 
         private void KillPlayer()
         {
-            playerSlot.Child.facingDirection.X = 0;
-            playerSlot.Child.facingDirection.Y = 0;
             playerSlot.Child.life = 0;
             playerSlot.Child = null;
             playerSlot = null;//TODO this should peoably be a reset and not a null
         }
 
-        private bool AdjustFireDurration(int delta)
+        public bool AdjustFireDurration(int delta)
         {
             int oldFireDurration = fireDurration;
             int reserved = 3;
             fireDurration += delta;
             if (GameSlotCount - fireDurration < reserved)
                 fireDurration = GameSlotCount - reserved;//minus 3 for player and 1 additional food and 1 blank space
+            else if (fireDurration < 0)
+                fireDurration = 0;
             Debug.Assert(fireDurration <= GameSlotCount - reserved);
             foreach (GameSlot fire in fires)
             {

@@ -1199,9 +1199,6 @@ namespace Pyro
                     case Keys.Right:
                         moveDir.X += 1;
                         break;
-                    case Keys.F1:
-                        PyroGameManager.TimeBasedMovement = !PyroGameManager.TimeBasedMovement;
-                        break;
                 }
             }
 
@@ -1323,6 +1320,13 @@ namespace Pyro
                         Paused();
                     //dont care about release
                     break;
+#if DeveleperModeEnabled
+                case Keys.F1:
+                    if (pressed)
+                    {
+                        PyroGameManager.TimeBasedMovement = !PyroGameManager.TimeBasedMovement;
+                    }
+                    break;
                 case Keys.F2:
                     if (pressed)
                     {
@@ -1330,18 +1334,21 @@ namespace Pyro
                     }
                     //dont care about release
                     break;
-                case Keys.OemTilde://dev stuff
+                case Keys.D1://dev stuff
                     if (pressed)
                     {
-                        //re-run this level animation - and reload level
-                        //gameState = GameStatus.LoadingLevel;
-                        //CurrentLevel.LoadFromFile();
-                        //AnimateLevelLoad();
-
-                        RestartLevel();
+                        pyroManager.AdjustFireDurration(-1);
                     }
                     //dont care about release
                     break;
+                case Keys.D2://dev stuff
+                    if (pressed)
+                    {
+                        pyroManager.AdjustFireDurration(1);
+                    }
+                    //dont care about release
+                    break;
+#endif
             }
         }
 
