@@ -5,7 +5,7 @@
 - Esc - Pause
 - Enter - menu interact
 
-###Special Controls
+###Special Controls (Dev Mode Only)
 - F1 - toggle time based movement vs key based movement.
 - F2 - Restart game
 - 1 - Shorten trail length
@@ -13,7 +13,7 @@
 
 
 ###New Features & Changes
-- Added keys to shorten and extend tail if in developer mode.
+- Added dead player when player hits trail. - programmer art
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder. YOu will also need the XNA SDK installed.

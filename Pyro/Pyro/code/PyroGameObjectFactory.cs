@@ -279,7 +279,7 @@ namespace Pyro
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
             lifetime.SetDeathSound(playerDeathSound);
-            //lifetime.SetObjectToSpawnOnDeath((int)PyroGameObjectTypes.PlayerDead, false);
+            lifetime.SetObjectToSpawnOnDeath((int)PyroGameObjectTypes.PlayerDead, false);
 
             result.Add(render);
             result.Add(lifetime);
@@ -316,18 +316,13 @@ namespace Pyro
 
                 // Animation Data
                 float animationDelay = 0.16f;
+                Rectangle crop32 = new Rectangle(0, 0, 32, 32);
                 Rectangle crop32f = new Rectangle(32, 0, -32, 32);
                 //Idle
-                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 2);
+                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 1);
                 idle.Loop = true;
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32));
                 //idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32f));
-                //idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32f));
-
-                Rectangle crop64 = new Rectangle(0, 0, 64, 64);
-                Rectangle crop64f = new Rectangle(64, 0, -64, 64);
-                
-                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
-                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64f));
 
                 //animations
                 staticData.Add(idle);
