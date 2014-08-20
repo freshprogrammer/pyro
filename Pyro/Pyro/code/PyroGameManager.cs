@@ -36,7 +36,7 @@ namespace Pyro
         public static int Score = 0;
         public static int FuelCollected = 0;
         public static int LastScore = 0;
-        public static int HighScore = 3;
+        public static int HighScore = 10;
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);

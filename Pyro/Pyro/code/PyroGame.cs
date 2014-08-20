@@ -857,15 +857,9 @@ namespace Pyro
             workspaceVar = vars.GetVariable("MusicMute", BaseObject.sSystemRegistry.SoundSystem.MuteMusic, out found);
             if (found) BaseObject.sSystemRegistry.SoundSystem.MuteMusic = workspaceVar.Boolean;
 
-            //load game variables
-            string gameVariablesPath = @"Content\scripts\gameVariables.conf";
-            vars.GetVariable("gameVariablesPath", ref gameVariablesPath, true);
+            workspaceVar = vars.GetVariable("HighScore", PyroGameManager.HighScore, out found);
+            if (found) PyroGameManager.HighScore = workspaceVar.Int;
 
-            VariablesFile gameVariablesFile = new VariablesFile(gameVariablesPath, null, true);
-            VariableLibrary gameVars = gameVariablesFile.variables;
-
-            PyroGameObjectFactory factory = (PyroGameObjectFactory)BaseObject.sSystemRegistry.GameObjectFactory;
-            factory.LoadSettings(gameVars);
         }
 
         /// <summary>
@@ -890,6 +884,8 @@ namespace Pyro
             settingsFile.variables.SetValue("SoundEffectsMute", "" + BaseObject.sSystemRegistry.SoundSystem.MuteSoundEffects);
             settingsFile.variables.SetValue("MusicVolume", "" + Math.Round(BaseObject.sSystemRegistry.SoundSystem.MusicVolume, 2));
             settingsFile.variables.SetValue("MusicMute", "" + BaseObject.sSystemRegistry.SoundSystem.MuteMusic);
+
+            settingsFile.variables.SetValue("HighScore", "" + PyroGameManager.HighScore);
 
             settingsFile.SaveAs(settingsFilePath);
         }

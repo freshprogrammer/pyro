@@ -13,7 +13,7 @@
 
 
 ###New Features & Changes
-- Added dead player when player hits trail. - programmer art
+- High score is now tracked in the config file. high score is maintained through multiple sessions.
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder. YOu will also need the XNA SDK installed.
