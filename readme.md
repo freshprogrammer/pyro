@@ -1,18 +1,19 @@
-##Pyro v0.3
+##Pyro v0.4
 
 ###Controls (supports 360 controller)
 - Arrow Keys, WASD - Move player, navigate Menu
 - Esc - Pause
 - Enter - menu interact
 
-###Special Controls
+###Special Controls (Dev Mode Only)
 - F1 - toggle time based movement vs key based movement.
 - F2 - Restart game
+- 1 - Shorten trail length
+- 2 - Extend trail length
 
 
 ###New Features & Changes
-- Shorted start tail length to 5 vs 20.
-- Images are now flipped on the fly so less assets are necessary.
+- High score is now tracked in the config file. high score is maintained through multiple sessions.
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder. YOu will also need the XNA SDK installed.
