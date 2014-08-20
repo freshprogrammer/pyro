@@ -82,6 +82,7 @@ namespace Pyro
 
         public void StartGame(int level, int speed)
         {
+            LastScore = Score;
             Reset();
 
             Speed = speed;
@@ -108,7 +109,6 @@ namespace Pyro
 
         public override void Reset()
         {
-            LastScore = Score;
             if (LastScore > HighScore)
                 HighScore = LastScore;
             Score = 0;
