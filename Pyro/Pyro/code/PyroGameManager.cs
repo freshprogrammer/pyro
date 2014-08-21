@@ -583,13 +583,13 @@ namespace Pyro
                 case ScoredAction.Move:
                     if (scoreSinceLastFuel < FuelCollected)
                     {
-                        Score++;//+1 each move up to the tail length
+                        Score--;//+1 each move up to the tail length
                         scoreSinceLastFuel++;
                     }
                     break;
                 case ScoredAction.CollectFuel:
                     scoreSinceLastFuel = 0;
-                    Score+=FuelCollected;
+                    Score+=2*FuelCollected;
                     break;
             }
         }
