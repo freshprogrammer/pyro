@@ -1,4 +1,4 @@
-##Pyro v0.4
+##Pyro v0.5
 
 ###Controls (supports 360 controller)
 - Arrow Keys, WASD - Move player, navigate Menu
@@ -13,13 +13,7 @@
 
 
 ###New Features & Changes
-- Fixed food spawning on player. Still watching for food failing to spawn. (known bug when screen is full)
-- Shorted start tail length to 0.
-- Added score & high score tracking (instance only)
-- Added simple GUI to show score data.
-- Added keys to shorten and extend tail if in developer mode.
-- Added dead player when player hits trail. - programmer art
-- High score is now tracked in the config file. high score is maintained through multiple sessions.
+- Added basic AI that moves directly to fuel. No self preservation.
 
 ###Build Notes
 To build with fresh solution, you will need to manually link the FreshGameLibrary.dll included in the bin folder. You will also need the XNA SDK installed.
