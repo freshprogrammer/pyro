@@ -16,6 +16,7 @@ namespace Pyro
         //constant control variables
         public const int SlotSize = 32;
         public static bool TimeBasedMovement = true;
+        public static bool AIEnabled = true;
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
@@ -524,6 +525,30 @@ namespace Pyro
             }
         }
 
+        private GameSlot GetFuelSlot()
+        {
+            foreach (GameSlot s in tileSlots)
+            {
+                if (s.Contents == GameSlotStatus.Fuel) return s;
+            }
+            return null;
+        }
+
+        private void AIPlanMove()
+        {
+            Point newDir = new Point (0,0);
+            GameSlot fuelSlot = GetFuelSlot();
+
+            if (fuelSlot.X > playerSlot.X) newDir.X = 1;
+            else if (fuelSlot.X < playerSlot.X) newDir.X = -1;
+            else if (fuelSlot.Y > playerSlot.Y) newDir.Y = 1;
+            else if (fuelSlot.Y < playerSlot.Y) newDir.Y = -1;
+
+
+            playerSlot.Child.facingDirection.X = newDir.X;
+            playerSlot.Child.facingDirection.Y = newDir.Y;
+        }
+
         public override void Update(float timeDelta, BaseObject parent)
         {
             if (gameState != GameState.Loading)
@@ -563,7 +588,13 @@ namespace Pyro
                         //game over
                         if (TimeBasedMovement)
                         {
-                            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+                            if (AIEnabled)
+                            {
+                                AIPlanMove();
+                                MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+                            }
+                            else
+                                MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
                     }
                     break;
