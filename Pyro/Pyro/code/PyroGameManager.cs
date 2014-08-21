@@ -26,7 +26,7 @@ namespace Pyro
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
-        private const float playerMoveTickDelay_Med = 0.15f;
+        private const float playerMoveTickDelay_Med = 0.05f;
         private const float playerMoveTickDelay_High = 0.25f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
@@ -394,11 +394,10 @@ namespace Pyro
             return (x1 * -1 ==x2 && y1 * -1 ==y2);
         }
 
-        private void MovePlayer(int xDif, int yDif)
+        private GameSlot GetGameSlot(Point pt, int offsetX, int offsetY)
         {
-            
-            int newX = playerSlot.X + xDif;
-            int newY = playerSlot.Y + yDif;
+            int newX = playerSlot.X + offsetX;
+            int newY = playerSlot.Y + offsetY;
 
             if (newX < 0) newX += GameWidthInSlots;
             else newX %= GameWidthInSlots;
@@ -406,8 +405,18 @@ namespace Pyro
             if (newY < 0) newY += GameHeightInSlots;
             else newY %= GameHeightInSlots;
 
+            return GetGameSlot(newX, newY);
+        }
+
+        private GameSlot GetNextGameSlot()
+        {
+            return GetGameSlot(playerSlot.Position, (int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+        }
+
+        private void MovePlayer(int xDif, int yDif)
+        {
             GameSlot oldSlot = GetGameSlot(playerSlot.Position);
-            GameSlot newSlot = GetGameSlot(newX, newY);
+            GameSlot newSlot = GetGameSlot(playerSlot.Position,xDif,yDif);
 
             bool spawnNewFuel = false;
             bool moved = false;
@@ -534,6 +543,15 @@ namespace Pyro
             return null;
         }
 
+        private static Vector2 RotateSimpleVector(Vector2 start, int rightTurns)
+        {
+            rightTurns %= 4;
+            if (rightTurns == 1) return new Vector2(-1 * start.Y, start.X);//rotate right :: x=-y y=x
+            else if (rightTurns == 2) return new Vector2(-1 * start.Y, -1 * start.X);
+            else if (rightTurns == 3) return new Vector2(start.Y, -1 * start.X);//rotate right :: x=y y=-x
+            else return start;//0
+        }
+
         private void AIPlanMove()
         {
             Point newDir = new Point (0,0);
@@ -544,9 +562,25 @@ namespace Pyro
             else if (fuelSlot.Y > playerSlot.Y) newDir.Y = 1;
             else if (fuelSlot.Y < playerSlot.Y) newDir.Y = -1;
 
-
             playerSlot.Child.facingDirection.X = newDir.X;
             playerSlot.Child.facingDirection.Y = newDir.Y;
+
+            GameSlot newSlot = GetNextGameSlot();
+            if (newSlot.Contents == GameSlotStatus.Fire)//fire in front
+            {
+                playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 3);
+                newSlot = GetNextGameSlot();
+                if (newSlot.Contents == GameSlotStatus.Fire)// fire to left
+                {
+                    playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
+                    newSlot = GetNextGameSlot();
+                    if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - no where is safe
+                    {
+                        //crash straight
+                        playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 3);
+                    }
+                }
+            }
         }
 
         public override void Update(float timeDelta, BaseObject parent)
