@@ -574,10 +574,16 @@ namespace Pyro
                 {
                     playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
                     newSlot = GetNextGameSlot();
-                    if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - no where is safe
+                    if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - check backwards
                     {
-                        //crash straight
-                        playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 3);
+                        //check  straight
+                        playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 1);
+                        newSlot = GetNextGameSlot();
+                        if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - check backwards
+                        {
+                            //crash straight
+                            playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
+                        }
                     }
                 }
             }
