@@ -343,45 +343,62 @@ namespace Pyro
 
         private void ProcessInput(float gameTime)
         {
+           
             PlayerController input = PyroGame.PlayerController;
             int xDif = 0;
             int yDif = 0;
-            
+            bool newInput = false;
+
             if (input.LeftPressed && !lastInput.LeftPressed)
             {
                 //Move Left Pressed
                 xDif = -1;
+                newInput = true;
             }
             else if (input.RightPressed && !lastInput.RightPressed)
             {
                 //Move Right Pressed
                 xDif = 1;
+                newInput = true;
             }
             else if (input.UpPressed && !lastInput.UpPressed)
             {
                 //Move Up Pressed
                 yDif = -1;
+                newInput = true;
             }
             else if (input.DownPressed && !lastInput.DownPressed)
             {
                 //Move Down Pressed
                 yDif = 1;
+                newInput = true;
             }
 
-            if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
+            if (newInput)
             {
-                if(xDif!=0 || yDif!=0)
+                if (AIEnabled)
                 {
-                    //not exact oposite direction
-                    playerSlot.Child.facingDirection.X = xDif;
-                    playerSlot.Child.facingDirection.Y = yDif;
-                    if(!TimeBasedMovement)
+                    //on any input tick ai 1
+                    AITick();
+                }
+                else
+                {
+                    if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
                     {
-                        MovePlayer(xDif, yDif);
+                        if (xDif != 0 || yDif != 0)
+                        {
+                            //not exact oposite direction
+                            playerSlot.Child.facingDirection.X = xDif;
+                            playerSlot.Child.facingDirection.Y = yDif;
+                            if (!TimeBasedMovement)
+                            {
+                                MovePlayer(xDif, yDif);
+                            }
+                        }
                     }
+
                 }
             }
-
             lastInput = PyroGame.PlayerController.Snapshot();
         }
 
@@ -549,6 +566,12 @@ namespace Pyro
             else return start;//0
         }
 
+        private void AITick()
+        {
+            AIPlanMove();
+            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+        }
+
         private void AIPlanMove()
         {
             Point newDir = new Point (0,0);
@@ -623,14 +646,12 @@ namespace Pyro
                     {
                         //Player hit something - game over
                         //game over
+                        
                         if (TimeBasedMovement)
                         {
                             if (AIEnabled)
-                            {
-                                AIPlanMove();
-                                MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
-                            }
-                            else
+                                AITick();
+                            else 
                                 MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
                     }
