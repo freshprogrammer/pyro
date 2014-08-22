@@ -25,9 +25,12 @@ namespace Pyro
         private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
-        private const float playerMoveTickDelay_Low = 0.55f;
-        private const float playerMoveTickDelay_Med = 0.01f;
-        private const float playerMoveTickDelay_High = 0.25f;
+        private const float playerMoveTickDelay_Low = 0.20f;
+        private const float playerMoveTickDelay_Med = 0.15f;
+        private const float playerMoveTickDelay_High = 0.10f;
+        private const float aiMoveTickDelay_Low = 0.05f;
+        private const float aiMoveTickDelay_Med = 0.01f;
+        private const float aiMoveTickDelay_High = 0.004f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
 
@@ -53,7 +56,7 @@ namespace Pyro
         //timing and game logic
         public static GameState gameState;
         private float lastTickTime = -5000;
-        private float playerMoveTickDelay = 0.01f;
+        private float activeMoveTickDelay = 0.01f;
         private Random random;
         private int fireDurration;
 
@@ -88,12 +91,25 @@ namespace Pyro
             Reset();
 
             Speed = speed;
-            switch (Speed)
+            if (AIEnabled)
             {
-                default:
-                case 0: playerMoveTickDelay = playerMoveTickDelay_Low; break;
-                case 1: playerMoveTickDelay = playerMoveTickDelay_Med; break;
-                case 2: playerMoveTickDelay = playerMoveTickDelay_High; break;
+                switch (Speed)
+                {
+                    default:
+                    case 0: activeMoveTickDelay = aiMoveTickDelay_Low; break;
+                    case 1: activeMoveTickDelay = aiMoveTickDelay_Med; break;
+                    case 2: activeMoveTickDelay = aiMoveTickDelay_High; break;
+                }
+            }
+            else
+            {
+                switch (Speed)
+                {
+                    default:
+                    case 0: activeMoveTickDelay = playerMoveTickDelay_Low; break;
+                    case 1: activeMoveTickDelay = playerMoveTickDelay_Med; break;
+                    case 2: activeMoveTickDelay = playerMoveTickDelay_High; break;
+                }
             }
             //totalPlayTime = new TimeSpan();
 
@@ -619,7 +635,7 @@ namespace Pyro
                 {
                     //processInput must be outsude the tick so it can be called faster for faster controls and quick dropping
                     ProcessInput(gameTime);
-                    if (gameTime - lastTickTime > playerMoveTickDelay)
+                    if (gameTime - lastTickTime > activeMoveTickDelay)
                     {
                         lastTickTime = gameTime;
                         Tick();
