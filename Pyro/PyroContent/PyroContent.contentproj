@@ -69,46 +69,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="pics\blue_Virus.png">
-      <Name>blue_Virus</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death0.png">
-      <Name>blue_Virus_Death0</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death1.png">
-      <Name>blue_Virus_Death1</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death2.png">
-      <Name>blue_Virus_Death2</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death3.png">
-      <Name>blue_Virus_Death3</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death4.png">
-      <Name>blue_Virus_Death4</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death5.png">
-      <Name>blue_Virus_Death5</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\blue_Virus_Death6.png">
-      <Name>blue_Virus_Death6</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
     <Compile Include="pics\debug\debug_box_blue.png">
       <Name>debug_box_blue</Name>
       <Importer>TextureImporter</Importer>
@@ -201,21 +161,6 @@
     </Compile>
     <Compile Include="pics\misc\winItem.png">
       <Name>winItem</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\pill_blue.png">
-      <Name>pill_blue</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\pill_green.png">
-      <Name>pill_green</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\pill_red.png">
-      <Name>pill_red</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -357,6 +302,40 @@
   <ItemGroup>
     <Compile Include="pics\player\001_Death.png">
       <Name>001_Death</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="pics\fire2.png">
+      <Name>fire2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="pics\fire3.png">
+      <Name>fire3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="pics\fire4.png">
+      <Name>fire4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="pics\fire5.png">
+      <Name>fire5</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="pics\fire6.png">
+      <Name>fire6</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="pics\fuel.png">
+      <Name>fuel</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

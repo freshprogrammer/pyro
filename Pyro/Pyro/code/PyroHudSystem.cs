@@ -92,7 +92,10 @@ namespace Pyro
                     scoreTitle.Update(secondsDelta, this);
                     fuelTitle.Update(secondsDelta, this);
 
-                    highScore.SetText(PyroGameManager.HighScore.ToString());
+                    if (PyroGameManager.AIEnabled)
+                        highScore.SetText(PyroGameManager.AIHighScore.ToString());
+                    else
+                        highScore.SetText(PyroGameManager.HighScore.ToString());
                     highScore.Update(secondsDelta, this);
 
                     lastScore.SetText(PyroGameManager.LastScore.ToString());
@@ -109,7 +112,7 @@ namespace Pyro
 
         public override void UpdateInventory(InventoryComponent.UpdateRecord inv)
         {
-            //TODO write this stub HUD inventory stub
+            //stub HUD inventory stub
         }
     }
 }

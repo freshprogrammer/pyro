@@ -16,6 +16,8 @@ namespace Pyro
         //constant control variables
         public const int SlotSize = 32;
         public static bool TimeBasedMovement = true;
+        private static bool aiEnabled = true;
+        public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
@@ -24,9 +26,12 @@ namespace Pyro
         private const int GameHeightInSlots = 20;
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
-        private const float playerMoveTickDelay_Low = 0.55f;
+        private const float playerMoveTickDelay_Low = 0.20f;
         private const float playerMoveTickDelay_Med = 0.15f;
-        private const float playerMoveTickDelay_High = 0.25f;
+        private const float playerMoveTickDelay_High = 0.10f;
+        private const float aiMoveTickDelay_Low = 0.05f;
+        private const float aiMoveTickDelay_Med = 0.01f;
+        private const float aiMoveTickDelay_High = 0.004f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
 
@@ -37,12 +42,14 @@ namespace Pyro
         public static int FuelCollected = 0;
         public static int LastScore = 0;
         public static int HighScore = 10;
+        public static int AIHighScore = 10;
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> fires = new FixedSizeArray<GameSlot>(GameSlotCount);
-        private FixedSizeArray<GameSlot> deadFires= new FixedSizeArray<GameSlot>(GameSlotCount);
+        private FixedSizeArray<GameSlot> deadFires = new FixedSizeArray<GameSlot>(GameSlotCount);
         private GameSlot playerSlot;
+        private GameSlot fuelSlot;
         
         //input
         private PlayerController lastInput;
@@ -51,7 +58,7 @@ namespace Pyro
         //timing and game logic
         public static GameState gameState;
         private float lastTickTime = -5000;
-        private float playerMoveTickDelay = 0.01f;
+        private float activeMoveTickDelay = 0.01f;
         private Random random;
         private int fireDurration;
 
@@ -82,16 +89,28 @@ namespace Pyro
 
         public void StartGame(int level, int speed)
         {
-            LastScore = Score;
             Reset();
 
             Speed = speed;
-            switch (Speed)
+            if (AIEnabled)
             {
-                default:
-                case 0: playerMoveTickDelay = playerMoveTickDelay_Low; break;
-                case 1: playerMoveTickDelay = playerMoveTickDelay_Med; break;
-                case 2: playerMoveTickDelay = playerMoveTickDelay_High; break;
+                switch (Speed)
+                {
+                    default:
+                    case 0: activeMoveTickDelay = aiMoveTickDelay_Low; break;
+                    case 1: activeMoveTickDelay = aiMoveTickDelay_Med; break;
+                    case 2: activeMoveTickDelay = aiMoveTickDelay_High; break;
+                }
+            }
+            else
+            {
+                switch (Speed)
+                {
+                    default:
+                    case 0: activeMoveTickDelay = playerMoveTickDelay_Low; break;
+                    case 1: activeMoveTickDelay = playerMoveTickDelay_Med; break;
+                    case 2: activeMoveTickDelay = playerMoveTickDelay_High; break;
+                }
             }
             //totalPlayTime = new TimeSpan();
 
@@ -109,9 +128,7 @@ namespace Pyro
 
         public override void Reset()
         {
-            if (LastScore > HighScore)
-                HighScore = LastScore;
-            Score = 0;
+            ClearScoreIntoLastScore();
             FuelCollected = 0;
             scoreSinceLastFuel = 0;
 
@@ -126,6 +143,22 @@ namespace Pyro
             lastInput = new PlayerController();
             playerSlot = new GameSlot(-1, -1);
             playerSlot.Contents = GameSlotStatus.Player;
+        }
+
+        private static void ClearScoreIntoLastScore()
+        {
+            LastScore = Score;
+            Score = 0;
+            if (AIEnabled)
+            {
+                if (LastScore > AIHighScore)
+                    AIHighScore = LastScore;
+            }
+            else
+            {
+                if (LastScore > HighScore)
+                    HighScore = LastScore;
+            }
         }
 
         private void ClearSlots(FixedSizeArray<GameSlot> slots)
@@ -151,8 +184,8 @@ namespace Pyro
 
             for (int xx = 0; xx < slotCount; xx++)
             {
-                int xPos = xx % GameWidthInSlots;
-                int yPos = xx / GameWidthInSlots;
+                int xPos = xx / GameWidthInSlots;
+                int yPos = xx % GameWidthInSlots;
 
                 GameObject emptyTile = factory.SpawnTileEmpty(xPos, yPos);
                 manager.Add(emptyTile);
@@ -222,6 +255,7 @@ namespace Pyro
             fireSlot.Setup(GameSlotStatus.Fire, fireGameObject);
 
             fireGameObject.SetPosition(GetSlotLocation(fireSlot.Position));
+            fireGameObject.facingDirection = playerSlot.Child.facingDirection;
 
             fires.Add(fireSlot);
         }
@@ -269,16 +303,12 @@ namespace Pyro
                     var sprite = fire.Child.FindByType<SpriteComponent>();
 
                     percentLife = 1f * fire.Child.life / fireDurration;
-                    if (percentLife > 0.9f) sprite.PlayAnimation((int)FireAnimation.Fire100);
-                    else if (percentLife > 0.8f) sprite.PlayAnimation((int)FireAnimation.Fire90);
-                    else if (percentLife > 0.7f) sprite.PlayAnimation((int)FireAnimation.Fire80);
-                    else if (percentLife > 0.6f) sprite.PlayAnimation((int)FireAnimation.Fire70);
-                    else if (percentLife > 0.5f) sprite.PlayAnimation((int)FireAnimation.Fire60);
-                    else if (percentLife > 0.4f) sprite.PlayAnimation((int)FireAnimation.Fire50);
-                    else if (percentLife > 0.3f) sprite.PlayAnimation((int)FireAnimation.Fire40);
-                    else if (percentLife > 0.2f) sprite.PlayAnimation((int)FireAnimation.Fire30);
-                    else if (percentLife > 0.1f) sprite.PlayAnimation((int)FireAnimation.Fire20);
-                    else if (percentLife > 0)    sprite.PlayAnimation((int)FireAnimation.Fire10);
+                    if (percentLife > 0.8f)      sprite.PlayAnimation((int)FireAnimation.Fire100);
+                    else if (percentLife > 0.6f) sprite.PlayAnimation((int)FireAnimation.Fire80);
+                    else if (percentLife > 0.4f) sprite.PlayAnimation((int)FireAnimation.Fire60);
+                    else if (percentLife > 0.2f) sprite.PlayAnimation((int)FireAnimation.Fire40);
+                    else if (percentLife > 0.0f) sprite.PlayAnimation((int)FireAnimation.Fire20);
+                    else                         sprite.PlayAnimation((int)FireAnimation.Fire0);
                 }
             }
         }
@@ -314,7 +344,7 @@ namespace Pyro
 
         private void SpawnFuel()
         {
-            GameSlot fuelSlot = GetRandomEmptySlot();
+            fuelSlot = GetRandomEmptySlot();
             if (fuelSlot == null)
             {
                 //game has no empty tiles - shorted tail by 1 to allow space then try again
@@ -341,45 +371,62 @@ namespace Pyro
 
         private void ProcessInput(float gameTime)
         {
+           
             PlayerController input = PyroGame.PlayerController;
             int xDif = 0;
             int yDif = 0;
-            
+            bool newInput = false;
+
             if (input.LeftPressed && !lastInput.LeftPressed)
             {
                 //Move Left Pressed
                 xDif = -1;
+                newInput = true;
             }
             else if (input.RightPressed && !lastInput.RightPressed)
             {
                 //Move Right Pressed
                 xDif = 1;
+                newInput = true;
             }
             else if (input.UpPressed && !lastInput.UpPressed)
             {
                 //Move Up Pressed
                 yDif = -1;
+                newInput = true;
             }
             else if (input.DownPressed && !lastInput.DownPressed)
             {
                 //Move Down Pressed
                 yDif = 1;
+                newInput = true;
             }
 
-            if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
+            if (newInput)
             {
-                if(xDif!=0 || yDif!=0)
+                if (AIEnabled)
                 {
-                    //not exact oposite direction
-                    playerSlot.Child.facingDirection.X = xDif;
-                    playerSlot.Child.facingDirection.Y = yDif;
-                    if(!TimeBasedMovement)
+                    //on any input tick ai 1
+                    AITick();
+                }
+                else
+                {
+                    if (!isOpositeDirection(lastMoveDirection.X, lastMoveDirection.Y, xDif, yDif))
                     {
-                        MovePlayer(xDif, yDif);
+                        if (xDif != 0 || yDif != 0)
+                        {
+                            //not exact oposite direction
+                            playerSlot.Child.facingDirection.X = xDif;
+                            playerSlot.Child.facingDirection.Y = yDif;
+                            if (!TimeBasedMovement)
+                            {
+                                MovePlayer(xDif, yDif);
+                            }
+                        }
                     }
+
                 }
             }
-
             lastInput = PyroGame.PlayerController.Snapshot();
         }
 
@@ -393,11 +440,10 @@ namespace Pyro
             return (x1 * -1 ==x2 && y1 * -1 ==y2);
         }
 
-        private void MovePlayer(int xDif, int yDif)
+        private GameSlot GetGameSlot(Point pt, int offsetX, int offsetY)
         {
-            
-            int newX = playerSlot.X + xDif;
-            int newY = playerSlot.Y + yDif;
+            int newX = playerSlot.X + offsetX;
+            int newY = playerSlot.Y + offsetY;
 
             if (newX < 0) newX += GameWidthInSlots;
             else newX %= GameWidthInSlots;
@@ -405,8 +451,18 @@ namespace Pyro
             if (newY < 0) newY += GameHeightInSlots;
             else newY %= GameHeightInSlots;
 
+            return GetGameSlot(newX, newY);
+        }
+
+        private GameSlot GetNextGameSlot()
+        {
+            return GetGameSlot(playerSlot.Position, (int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+        }
+
+        private void MovePlayer(int xDif, int yDif)
+        {
             GameSlot oldSlot = GetGameSlot(playerSlot.Position);
-            GameSlot newSlot = GetGameSlot(newX, newY);
+            GameSlot newSlot = GetGameSlot(playerSlot.Position,xDif,yDif);
 
             bool spawnNewFuel = false;
             bool moved = false;
@@ -487,7 +543,7 @@ namespace Pyro
         {
             playerSlot.Child.life = 0;
             playerSlot.Child = null;
-            playerSlot = null;//TODO this should peoably be a reset and not a null
+            playerSlot = null;//This is just a link to the tileSlots
         }
 
         public bool AdjustFireDurration(int delta)
@@ -524,6 +580,63 @@ namespace Pyro
             }
         }
 
+        private GameSlot GetFuelSlot()
+        {
+            return fuelSlot;
+        }
+
+        private static Vector2 RotateSimpleVector(Vector2 start, int rightTurns)
+        {
+            rightTurns %= 4;
+            if (rightTurns == 1) return new Vector2(-1 * start.Y, start.X);//rotate right :: x=-y y=x
+            else if (rightTurns == 2) return new Vector2(-1 * start.X, -1 * start.Y);
+            else if (rightTurns == 3) return new Vector2(start.Y, -1 * start.X);//rotate right :: x=y y=-x
+            else return start;//0
+        }
+
+        private void AITick()
+        {
+            AIPlanMove();
+            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+        }
+
+        private void AIPlanMove()
+        {
+            Point newDir = new Point (0,0);
+            GameSlot fuelSlot = GetFuelSlot();
+
+            if (fuelSlot.X > playerSlot.X) newDir.X = 1;
+            else if (fuelSlot.X < playerSlot.X) newDir.X = -1;
+            else if (fuelSlot.Y > playerSlot.Y) newDir.Y = 1;
+            else if (fuelSlot.Y < playerSlot.Y) newDir.Y = -1;
+
+            playerSlot.Child.facingDirection.X = newDir.X;
+            playerSlot.Child.facingDirection.Y = newDir.Y;
+
+            GameSlot newSlot = GetNextGameSlot();
+            if (!newSlot.IsSafeToWalkOn())//fire in front
+            {
+                playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 3);
+                newSlot = GetNextGameSlot();
+                if (!newSlot.IsSafeToWalkOn())// fire to left
+                {
+                    playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
+                    newSlot = GetNextGameSlot();
+                    if (!newSlot.IsSafeToWalkOn())// fire to right - check backwards
+                    {
+                        //check  straight
+                        playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 1);
+                        newSlot = GetNextGameSlot();
+                        if (!newSlot.IsSafeToWalkOn())// fire to right - check backwards
+                        {
+                            //crash straight
+                            playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
+                        }
+                    }
+                }
+            }
+        }
+
         public override void Update(float timeDelta, BaseObject parent)
         {
             if (gameState != GameState.Loading)
@@ -534,7 +647,7 @@ namespace Pyro
                 {
                     //processInput must be outsude the tick so it can be called faster for faster controls and quick dropping
                     ProcessInput(gameTime);
-                    if (gameTime - lastTickTime > playerMoveTickDelay)
+                    if (gameTime - lastTickTime > activeMoveTickDelay)
                     {
                         lastTickTime = gameTime;
                         Tick();
@@ -561,9 +674,13 @@ namespace Pyro
                     {
                         //Player hit something - game over
                         //game over
+                        
                         if (TimeBasedMovement)
                         {
-                            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+                            if (AIEnabled)
+                                AITick();
+                            else 
+                                MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
                     }
                     break;
@@ -583,13 +700,13 @@ namespace Pyro
                 case ScoredAction.Move:
                     if (scoreSinceLastFuel < FuelCollected)
                     {
-                        Score++;//+1 each move up to the tail length
+                        Score--;//+1 each move up to the tail length
                         scoreSinceLastFuel++;
                     }
                     break;
                 case ScoredAction.CollectFuel:
                     scoreSinceLastFuel = 0;
-                    Score+=FuelCollected;
+                    Score+=2*FuelCollected;
                     break;
             }
         }
@@ -607,7 +724,7 @@ namespace Pyro
 
         private int GetGameSlotIndex(int x, int y)
         {
-            return y * GameWidthInSlots + x % GameWidthInSlots;
+            return x * GameWidthInSlots + y % GameWidthInSlots;
         }
 
         private int GetGameSlotIndex(Point pt)
@@ -713,6 +830,16 @@ namespace Pyro
             {
                 Child.SetPosition(PyroGameManager.GetSlotLocation(position));
             }
+        }
+
+        public bool IsSafeToWalkOn(int movesFromNow = 0)
+        {
+            if (Contents == GameSlotStatus.Fire)
+            {
+                return Child.life < movesFromNow + 1;
+            }
+            else
+                return true;
         }
 
         public void KillImedietly()

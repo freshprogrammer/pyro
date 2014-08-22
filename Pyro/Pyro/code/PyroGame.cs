@@ -500,12 +500,13 @@ namespace Pyro
 
             MenuItem[] mainItems;
             MenuItem newGameItem = new MenuItem("New Game", MenuItem_NewGame);
+            MenuItem aiGameItem = new MenuItem("AI Game", MenuItem_AIGame);
             MenuItem optionsItem = new MenuItem("Options", optionsMenu);
             MenuItem exitItem = new MenuItem("Exit", SystemExit, null);
 
 #if DeveleperModeEnabled
             if (debugMenuEnabled)
-                mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem, debugMenuItem };
+                mainItems = new MenuItem[] { newGameItem, aiGameItem, optionsItem, exitItem, debugMenuItem };
             else
 #endif
             mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem };
@@ -543,10 +544,18 @@ namespace Pyro
 
         private void MenuItem_NewGame(MenuItem parent)
         {
+            PyroGameManager.AIEnabled = false;
             mainMenuTree.SwipeAwayMenu(GotoFirstLevel_Animated);
             //mainMenuTree.SwipeAwayMenu(GotoFirstLevel_NotAnimated);
         }
 
+        private void MenuItem_AIGame(MenuItem parent)
+        {
+            PyroGameManager.AIEnabled = true;
+            mainMenuTree.SwipeAwayMenu(GotoFirstLevel_Animated);
+            //mainMenuTree.SwipeAwayMenu(GotoFirstLevel_NotAnimated);
+        }
+        
         private void MenuItem_NewGameLevelUp(MenuItem parent)
         {
             if (newGameLevelNo < 20)
@@ -859,6 +868,8 @@ namespace Pyro
 
             workspaceVar = vars.GetVariable("HighScore", PyroGameManager.HighScore, out found);
             if (found) PyroGameManager.HighScore = workspaceVar.Int;
+            workspaceVar = vars.GetVariable("AIHighScore", PyroGameManager.AIHighScore, out found);
+            if (found) PyroGameManager.AIHighScore = workspaceVar.Int;
 
         }
 
@@ -886,6 +897,7 @@ namespace Pyro
             settingsFile.variables.SetValue("MusicMute", "" + BaseObject.sSystemRegistry.SoundSystem.MuteMusic);
 
             settingsFile.variables.SetValue("HighScore", "" + PyroGameManager.HighScore);
+            settingsFile.variables.SetValue("AIHighScore", "" + PyroGameManager.AIHighScore);
 
             settingsFile.SaveAs(settingsFilePath);
         }
