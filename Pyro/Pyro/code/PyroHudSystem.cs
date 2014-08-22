@@ -109,7 +109,7 @@ namespace Pyro
 
         public override void UpdateInventory(InventoryComponent.UpdateRecord inv)
         {
-            //TODO write this stub HUD inventory stub
+            //stub HUD inventory stub
         }
     }
 }

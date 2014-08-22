@@ -42,8 +42,9 @@ namespace Pyro
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> fires = new FixedSizeArray<GameSlot>(GameSlotCount);
-        private FixedSizeArray<GameSlot> deadFires= new FixedSizeArray<GameSlot>(GameSlotCount);
+        private FixedSizeArray<GameSlot> deadFires = new FixedSizeArray<GameSlot>(GameSlotCount);
         private GameSlot playerSlot;
+        private GameSlot fuelSlot;
         
         //input
         private PlayerController lastInput;
@@ -315,7 +316,7 @@ namespace Pyro
 
         private void SpawnFuel()
         {
-            GameSlot fuelSlot = GetRandomEmptySlot();
+            fuelSlot = GetRandomEmptySlot();
             if (fuelSlot == null)
             {
                 //game has no empty tiles - shorted tail by 1 to allow space then try again
@@ -497,7 +498,7 @@ namespace Pyro
         {
             playerSlot.Child.life = 0;
             playerSlot.Child = null;
-            playerSlot = null;//TODO this should peoably be a reset and not a null
+            playerSlot = null;//This is just a link to the tileSlots
         }
 
         public bool AdjustFireDurration(int delta)
@@ -536,11 +537,7 @@ namespace Pyro
 
         private GameSlot GetFuelSlot()
         {
-            foreach (GameSlot s in tileSlots)
-            {
-                if (s.Contents == GameSlotStatus.Fuel) return s;
-            }
-            return null;
+            return fuelSlot;
         }
 
         private static Vector2 RotateSimpleVector(Vector2 start, int rightTurns)
