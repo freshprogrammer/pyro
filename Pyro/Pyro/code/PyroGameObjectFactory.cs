@@ -375,9 +375,9 @@ namespace Pyro
                 int staticObjectCount = 1;
                 staticData = new FixedSizeArray<BaseObject>(staticObjectCount);
 
-                const int fileImageSize = 45;
+                const int fileImageSize = 64;
                 Rectangle crop = new Rectangle(0, 0, fileImageSize, fileImageSize);
-                Texture2D texture = content.Load<Texture2D>(@"pics\pill_green");
+                Texture2D texture = content.Load<Texture2D>(@"pics\fuel");
 
 
                 DrawableTexture2D textureDrawable = new DrawableTexture2D(texture, (int)result.width, (int)result.height);
@@ -424,70 +424,46 @@ namespace Pyro
 
                 // Animation Data
                 float animationDelay = 0.16f;
-                Rectangle crop64 = new Rectangle(0, 0, 64, 64);
-                Rectangle crop45 = new Rectangle(0, 0, 45, 45);
+                const int fileImageSize = 64;
+                Rectangle crop = new Rectangle(0, 0, fileImageSize, fileImageSize);
 
                 SpriteAnimation fire100 = new SpriteAnimation((int)FireAnimation.Fire100, 2);
                 fire100.Loop = true;
-                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
-                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64, SpriteEffects.FlipHorizontally));
-
-                SpriteAnimation fire90 = new SpriteAnimation((int)FireAnimation.Fire90, 2);
-                fire90.Loop = true;
-                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death6"), animationDelay, crop45));
-                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death6"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
+                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop));
+                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire80 = new SpriteAnimation((int)FireAnimation.Fire80, 2);
                 fire80.Loop = true;
-                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45));
-                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
-
-                SpriteAnimation fire70 = new SpriteAnimation((int)FireAnimation.Fire70, 2);
-                fire70.Loop = true;
-                fire70.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45));
-                fire70.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
+                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire2"), animationDelay, crop));
+                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire2"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire60 = new SpriteAnimation((int)FireAnimation.Fire60, 2);
                 fire60.Loop = true;
-                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45));
-                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
-
-                SpriteAnimation fire50 = new SpriteAnimation((int)FireAnimation.Fire50, 2);
-                fire50.Loop = true;
-                fire50.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop45));
-                fire50.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
+                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire3"), animationDelay, crop));
+                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire3"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire40 = new SpriteAnimation((int)FireAnimation.Fire40, 2);
                 fire40.Loop = true;
-                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45));
-                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
-
-                SpriteAnimation fire30 = new SpriteAnimation((int)FireAnimation.Fire30, 2);
-                fire30.Loop = true;
-                fire30.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45));
-                fire30.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
+                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire4"), animationDelay, crop));
+                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire4"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire20 = new SpriteAnimation((int)FireAnimation.Fire20, 2);
                 fire20.Loop = true;
-                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45));
-                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
+                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire5"), animationDelay, crop));
+                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire5"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
-                SpriteAnimation fire10 = new SpriteAnimation((int)FireAnimation.Fire10, 2);
-                fire10.Loop = true;
-                fire10.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
-                fire10.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64, SpriteEffects.FlipHorizontally));
+                SpriteAnimation fire0 = new SpriteAnimation((int)FireAnimation.Fire0, 2);
+                fire0.Loop = true;
+                fire0.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire6"), animationDelay, crop));
+                fire0.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire6"), animationDelay, crop, SpriteEffects.FlipHorizontally));
 
                 //animations
                 staticData.Add(fire100);
-                staticData.Add(fire90);
                 staticData.Add(fire80);
-                staticData.Add(fire70);
                 staticData.Add(fire60);
-                staticData.Add(fire50);
                 staticData.Add(fire40);
-                staticData.Add(fire30);
                 staticData.Add(fire20);
-                staticData.Add(fire10);
+                staticData.Add(fire0);
 
                 SetStaticData(thisGameObjectType, staticData);
             }
@@ -582,14 +558,10 @@ namespace Pyro
     public enum FireAnimation
     {
         Fire100,
-        Fire90,
         Fire80,
-        Fire70,
         Fire60,
-        Fire50,
         Fire40,
-        Fire30,
         Fire20,
-        Fire10,
+        Fire0,
     }
 }
