@@ -26,7 +26,7 @@ namespace Pyro
         private const int GameSlotCount = GameHeightInSlots * GameWidthInSlots;
         private readonly VibrationConfig killVibration = new VibrationConfig(0.5f, 0.5f, 0.25f);
         private const float playerMoveTickDelay_Low = 0.55f;
-        private const float playerMoveTickDelay_Med = 0.05f;
+        private const float playerMoveTickDelay_Med = 0.01f;
         private const float playerMoveTickDelay_High = 0.25f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
@@ -547,7 +547,7 @@ namespace Pyro
         {
             rightTurns %= 4;
             if (rightTurns == 1) return new Vector2(-1 * start.Y, start.X);//rotate right :: x=-y y=x
-            else if (rightTurns == 2) return new Vector2(-1 * start.Y, -1 * start.X);
+            else if (rightTurns == 2) return new Vector2(-1 * start.X, -1 * start.Y);
             else if (rightTurns == 3) return new Vector2(start.Y, -1 * start.X);//rotate right :: x=y y=-x
             else return start;//0
         }
@@ -566,20 +566,20 @@ namespace Pyro
             playerSlot.Child.facingDirection.Y = newDir.Y;
 
             GameSlot newSlot = GetNextGameSlot();
-            if (newSlot.Contents == GameSlotStatus.Fire)//fire in front
+            if (!newSlot.IsSafeToWalkOn())//fire in front
             {
                 playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 3);
                 newSlot = GetNextGameSlot();
-                if (newSlot.Contents == GameSlotStatus.Fire)// fire to left
+                if (!newSlot.IsSafeToWalkOn())// fire to left
                 {
                     playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
                     newSlot = GetNextGameSlot();
-                    if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - check backwards
+                    if (!newSlot.IsSafeToWalkOn())// fire to right - check backwards
                     {
                         //check  straight
                         playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 1);
                         newSlot = GetNextGameSlot();
-                        if (newSlot.Contents == GameSlotStatus.Fire)// fire to right - check backwards
+                        if (!newSlot.IsSafeToWalkOn())// fire to right - check backwards
                         {
                             //crash straight
                             playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
@@ -784,6 +784,16 @@ namespace Pyro
             {
                 Child.SetPosition(PyroGameManager.GetSlotLocation(position));
             }
+        }
+
+        public bool IsSafeToWalkOn(int movesFromNow = 0)
+        {
+            if (Contents == GameSlotStatus.Fire)
+            {
+                return Child.life < movesFromNow + 1;
+            }
+            else
+                return true;
         }
 
         public void KillImedietly()
