@@ -868,6 +868,8 @@ namespace Pyro
 
             workspaceVar = vars.GetVariable("HighScore", PyroGameManager.HighScore, out found);
             if (found) PyroGameManager.HighScore = workspaceVar.Int;
+            workspaceVar = vars.GetVariable("AIHighScore", PyroGameManager.AIHighScore, out found);
+            if (found) PyroGameManager.AIHighScore = workspaceVar.Int;
 
         }
 
@@ -895,6 +897,7 @@ namespace Pyro
             settingsFile.variables.SetValue("MusicMute", "" + BaseObject.sSystemRegistry.SoundSystem.MuteMusic);
 
             settingsFile.variables.SetValue("HighScore", "" + PyroGameManager.HighScore);
+            settingsFile.variables.SetValue("AIHighScore", "" + PyroGameManager.AIHighScore);
 
             settingsFile.SaveAs(settingsFilePath);
         }

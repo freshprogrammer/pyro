@@ -16,7 +16,8 @@ namespace Pyro
         //constant control variables
         public const int SlotSize = 32;
         public static bool TimeBasedMovement = true;
-        public static bool AIEnabled = true;
+        private static bool aiEnabled = true;
+        public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
@@ -41,6 +42,7 @@ namespace Pyro
         public static int FuelCollected = 0;
         public static int LastScore = 0;
         public static int HighScore = 10;
+        public static int AIHighScore = 10;
 
         //game slots - fixed and mobile
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
@@ -87,7 +89,6 @@ namespace Pyro
 
         public void StartGame(int level, int speed)
         {
-            LastScore = Score;
             Reset();
 
             Speed = speed;
@@ -127,9 +128,7 @@ namespace Pyro
 
         public override void Reset()
         {
-            if (LastScore > HighScore)
-                HighScore = LastScore;
-            Score = 0;
+            ClearScoreIntoLastScore();
             FuelCollected = 0;
             scoreSinceLastFuel = 0;
 
@@ -144,6 +143,22 @@ namespace Pyro
             lastInput = new PlayerController();
             playerSlot = new GameSlot(-1, -1);
             playerSlot.Contents = GameSlotStatus.Player;
+        }
+
+        private static void ClearScoreIntoLastScore()
+        {
+            LastScore = Score;
+            Score = 0;
+            if (AIEnabled)
+            {
+                if (LastScore > AIHighScore)
+                    AIHighScore = LastScore;
+            }
+            else
+            {
+                if (LastScore > HighScore)
+                    HighScore = LastScore;
+            }
         }
 
         private void ClearSlots(FixedSizeArray<GameSlot> slots)
