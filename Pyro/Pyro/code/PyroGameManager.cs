@@ -184,8 +184,8 @@ namespace Pyro
 
             for (int xx = 0; xx < slotCount; xx++)
             {
-                int xPos = xx % GameWidthInSlots;
-                int yPos = xx / GameWidthInSlots;
+                int xPos = xx / GameWidthInSlots;
+                int yPos = xx % GameWidthInSlots;
 
                 GameObject emptyTile = factory.SpawnTileEmpty(xPos, yPos);
                 manager.Add(emptyTile);
@@ -255,6 +255,7 @@ namespace Pyro
             fireSlot.Setup(GameSlotStatus.Fire, fireGameObject);
 
             fireGameObject.SetPosition(GetSlotLocation(fireSlot.Position));
+            fireGameObject.facingDirection = playerSlot.Child.facingDirection;
 
             fires.Add(fireSlot);
         }
@@ -703,13 +704,13 @@ namespace Pyro
                 case ScoredAction.Move:
                     if (scoreSinceLastFuel < FuelCollected)
                     {
-                        Score++;//+1 each move up to the tail length
+                        Score--;//+1 each move up to the tail length
                         scoreSinceLastFuel++;
                     }
                     break;
                 case ScoredAction.CollectFuel:
                     scoreSinceLastFuel = 0;
-                    Score+=FuelCollected;
+                    Score+=2*FuelCollected;
                     break;
             }
         }
@@ -727,7 +728,7 @@ namespace Pyro
 
         private int GetGameSlotIndex(int x, int y)
         {
-            return y * GameWidthInSlots + x % GameWidthInSlots;
+            return x * GameWidthInSlots + y % GameWidthInSlots;
         }
 
         private int GetGameSlotIndex(Point pt)

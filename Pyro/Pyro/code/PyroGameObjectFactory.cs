@@ -259,7 +259,7 @@ namespace Pyro
                 SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 3);
                 idle.Loop = true;
                 idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_01"), animationDelay));
-                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_02"), animationDelay));
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_02"), animationDelay, new Rectangle(0,0,32,32)));
                 idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_attackNN_03"), animationDelay));
 
                 //animations
@@ -317,12 +317,11 @@ namespace Pyro
                 // Animation Data
                 float animationDelay = 0.16f;
                 Rectangle crop32 = new Rectangle(0, 0, 32, 32);
-                Rectangle crop32f = new Rectangle(32, 0, -32, 32);
                 //Idle
-                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 1);
+                SpriteAnimation idle = new SpriteAnimation((int)Animations.Idle, 2);
                 idle.Loop = true;
                 idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32));
-                //idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32f));
+                idle.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\player\001_Death"), animationDelay, crop32, SpriteEffects.FlipHorizontally));
 
                 //animations
                 staticData.Add(idle);
@@ -426,59 +425,57 @@ namespace Pyro
                 // Animation Data
                 float animationDelay = 0.16f;
                 Rectangle crop64 = new Rectangle(0, 0, 64, 64);
-                Rectangle crop64f = new Rectangle(64, 0, -64, 64);
                 Rectangle crop45 = new Rectangle(0, 0, 45, 45);
-                Rectangle crop45f = new Rectangle(45, 0, -45, 45);
 
                 SpriteAnimation fire100 = new SpriteAnimation((int)FireAnimation.Fire100, 2);
                 fire100.Loop = true;
                 fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
-                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64f));
+                fire100.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire90 = new SpriteAnimation((int)FireAnimation.Fire90, 2);
                 fire90.Loop = true;
-                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay, crop45));
-                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus"), animationDelay, crop45f));
+                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death6"), animationDelay, crop45));
+                fire90.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death6"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire80 = new SpriteAnimation((int)FireAnimation.Fire80, 2);
                 fire80.Loop = true;
                 fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45));
-                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45f));
+                fire80.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire70 = new SpriteAnimation((int)FireAnimation.Fire70, 2);
                 fire70.Loop = true;
                 fire70.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45));
-                fire70.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45f));
+                fire70.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire60 = new SpriteAnimation((int)FireAnimation.Fire60, 2);
                 fire60.Loop = true;
                 fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45));
-                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45f));
+                fire60.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire50 = new SpriteAnimation((int)FireAnimation.Fire50, 2);
                 fire50.Loop = true;
                 fire50.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop45));
-                fire50.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop45f));
+                fire50.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death3"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire40 = new SpriteAnimation((int)FireAnimation.Fire40, 2);
                 fire40.Loop = true;
                 fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45));
-                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45f));
+                fire40.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death0"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire30 = new SpriteAnimation((int)FireAnimation.Fire30, 2);
                 fire30.Loop = true;
                 fire30.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45));
-                fire30.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45f));
+                fire30.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death1"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire20 = new SpriteAnimation((int)FireAnimation.Fire20, 2);
                 fire20.Loop = true;
                 fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45));
-                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45f));
+                fire20.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\blue_Virus_Death2"), animationDelay, crop45, SpriteEffects.FlipHorizontally));
 
                 SpriteAnimation fire10 = new SpriteAnimation((int)FireAnimation.Fire10, 2);
                 fire10.Loop = true;
                 fire10.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64));
-                fire10.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64f));
+                fire10.AddFrame(new AnimationFrame(content.Load<Texture2D>(@"pics\fire1"), animationDelay, crop64, SpriteEffects.FlipHorizontally));
 
                 //animations
                 staticData.Add(fire100);
@@ -502,7 +499,7 @@ namespace Pyro
             SpriteComponent sprite = (SpriteComponent)AllocateComponent(typeof(SpriteComponent));
             sprite.SetSize((int)result.width, (int)result.height);
             sprite.SetRenderComponent(render);
-            sprite.SetRenderMode(SpriteComponent.RenderMode.Standard);
+            sprite.SetRenderMode(SpriteComponent.RenderMode.RotateToFacingDirection);
 
             LifetimeComponent lifetime = AllocateComponent<LifetimeComponent>();
 
