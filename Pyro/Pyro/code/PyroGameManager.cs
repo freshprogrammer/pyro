@@ -15,6 +15,7 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
+        private static bool trackMoveList = true;
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
@@ -61,6 +62,8 @@ namespace Pyro
         private float activeMoveTickDelay = 0.01f;
         private Random random;
         private int fireDurration;
+
+        private List<string> moveLog = new List<string>(500);
 
         public enum GameState
         {
@@ -137,6 +140,8 @@ namespace Pyro
             fires.Clear();
             ClearSlots(deadFires);
             deadFires.Clear();
+
+            moveLog.Clear();
 
             lastMoveDirection = new Point(0, 0);
 
@@ -490,6 +495,8 @@ namespace Pyro
 
             if (moved)
             {
+                moveLog.Add("moved (" + oldSlot.X + "," + oldSlot.Y + ") to (" + newSlot.X + "," + newSlot.Y + ")");
+
                 UpdateScore(ScoredAction.Move);
                 //move player
                 //create fire
