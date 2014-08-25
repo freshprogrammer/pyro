@@ -15,7 +15,7 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
-        private static bool trackMoveList = true;
+        public static bool trackMoveList = true;//never actualy used
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
@@ -637,7 +637,8 @@ namespace Pyro
                         if (!newSlot.IsSafeToWalkOn())// fire to right - check backwards
                         {
                             //crash straight
-                            playerSlot.Child.facingDirection = RotateSimpleVector(playerSlot.Child.facingDirection, 2);
+                            playerSlot.Child.facingDirection.X = lastMoveDirection.X;
+                            playerSlot.Child.facingDirection.Y = lastMoveDirection.Y;
                         }
                     }
                 }
