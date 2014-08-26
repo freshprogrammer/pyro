@@ -18,9 +18,9 @@ namespace Pyro
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
-        public static bool CanWalkOnFire = true;
+        public static bool CanWalkOnFire = false;
 
-        private const int FireDefaultLifetime = 0;//start length
+        private const int FireDefaultLifetime = 2;//start length
         private static int BoardXOffset = 50;
         private static int BoardYOffset = 0;
         private const int GameWidthInSlots = 20;
@@ -49,6 +49,8 @@ namespace Pyro
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> fires = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> deadFires = new FixedSizeArray<GameSlot>(GameSlotCount);
+        private FixedSizeArray<GameSlot> scanWorkspace = new FixedSizeArray<GameSlot>(4);
+        private int[] scanScoreWorkspace = {0,0,0,0};
         private GameSlot playerSlot;
         private GameSlot fuelSlot;
         
@@ -239,6 +241,7 @@ namespace Pyro
 
             //spawn at center
             Point gameCenter = new Point(GameWidthInSlots / 2, GameHeightInSlots / 2);
+            gameCenter = new Point(19,19);
             playerSlot.SetPosition(gameCenter.X,gameCenter.Y);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
             GetGameSlot(gameCenter).Setup(GameSlotStatus.Player, null);
@@ -248,6 +251,33 @@ namespace Pyro
             playerSlot.Child.facingDirection.Y = 0;
 
             playerGameObject.SetPosition(GetSlotLocation(playerSlot.Position));
+        }
+
+        private void SpawnFuel()
+        {
+            fuelSlot = GetRandomEmptySlot();
+            if (fuelSlot == null)
+            {
+                //game has no empty tiles - shorted tail by 1 to allow space then try again
+                AdjustFireDurration(-1);
+                fuelSlot = GetRandomEmptySlot();
+
+                Debug.Assert(fuelSlot != null, "Failed to spawn another fuel");
+                //Need to test this
+            }
+
+            GameObjectManager manager = sSystemRegistry.GameObjectManager;
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+
+            GameObject fuelGameObject = factory.SpawnFuel(0, 0);
+            manager.Add(fuelGameObject);
+
+            //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
+            fuelSlot.Setup(GameSlotStatus.Fuel, fuelGameObject);
+
+            fuelGameObject.SetPosition(GetSlotLocation(fuelSlot.Position));
+
+            //fires.Add(fireSlot);
         }
 
         private void SpawnFire(GameSlot fireSlot)
@@ -357,33 +387,6 @@ namespace Pyro
             //stub - should happen automaticly via lifetime component
             //playerSlot.Child.life = 0;
             //playerSlot.Child = 
-        }
-
-        private void SpawnFuel()
-        {
-            fuelSlot = GetRandomEmptySlot();
-            if (fuelSlot == null)
-            {
-                //game has no empty tiles - shorted tail by 1 to allow space then try again
-                AdjustFireDurration(-1);
-                fuelSlot = GetRandomEmptySlot();
-
-                Debug.Assert(fuelSlot !=null, "Failed to spawn another fuel");
-                //Need to test this
-            }
-
-            GameObjectManager manager = sSystemRegistry.GameObjectManager;
-            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
-
-            GameObject fuelGameObject = factory.SpawnFuel(0, 0);
-            manager.Add(fuelGameObject);
-
-            //playerSlot.Setup(GameSlotStatus.Player, fireGameObject);
-            fuelSlot.Setup(GameSlotStatus.Fuel, fuelGameObject);
-
-            fuelGameObject.SetPosition(GetSlotLocation(fuelSlot.Position));
-
-            //fires.Add(fireSlot);
         }
 
         private void ProcessInput(float gameTime)
@@ -627,10 +630,13 @@ namespace Pyro
             else return start;//0
         }
 
-        private void SmartAITick()
+        private void AISmartTick()
         {
             int scanDepth = 5;
-            AIScan(scanDepth);
+            Point bestMoveDir = AISmartScan(scanDepth);
+            playerSlot.Child.facingDirection.X = bestMoveDir.X;
+            playerSlot.Child.facingDirection.Y = bestMoveDir.Y;
+
             MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
         }
 
@@ -638,10 +644,86 @@ namespace Pyro
         /// Scan Available moves and return best direction
         /// </summary>
         /// <param name="moves"></param>
-        private Point AIScan(int moves)
+        private Point AISmartScan(int moves)
         {
-            Point result = new Point(1, 0);
+            Point result = new Point(lastMoveDirection.X, lastMoveDirection.Y);
+
+            Point directionToGoal = DirectionToSlot(playerSlot,fuelSlot);
+            Point distanceToGoal = DistanceToSlot(playerSlot,fuelSlot);
+            Point correctDirectionToGoal = WrappedDirectionToSlot(playerSlot,fuelSlot);
+
+            scanWorkspace.Clear();
+            int[] scanXDirections = { 1, 0, -1, 0 };
+            int[] scanYDirections = { 0, 1, 0, -1 };
+            int highestScore = Int32.MinValue;
+            int highestScoreIndex = 0;
+            int score = 0;
+            for (int xx = 0; xx < 4; xx++)
+            {
+                GameSlot option = GetGameSlot(playerSlot.Position, scanXDirections[xx], scanYDirections[xx]);
+                scanWorkspace.Add(option);
+
+                if (!option.IsSafeToWalkOn())
+                {
+                    score = -1000;//death here
+                }
+                else
+                {
+                    int scoreFactorX = Math.Abs(correctDirectionToGoal.X) + scanXDirections[xx];
+                    int scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + scanYDirections[xx];
+
+                    scoreFactorX = 1;
+                    scoreFactorY = 1;
+                    //calc score
+                    score = 0;
+                    if (scanXDirections[xx] == correctDirectionToGoal.X && scanXDirections[xx] == 0)//stright line
+                        score += 2 * scoreFactorX;
+                    else if (scanXDirections[xx] < 0 && correctDirectionToGoal.X < 0)//correct direction
+                        score += 1 * scoreFactorX;
+                    else if (scanXDirections[xx] < 0 && correctDirectionToGoal.X > 0 || scanXDirections[xx] > 0 && correctDirectionToGoal.X < 0)//oposite dir
+                        score += -1 * scoreFactorX;
+
+                    if (scanYDirections[xx] == correctDirectionToGoal.Y && scanYDirections[xx] == 0)//stright line
+                        score += 2 * scoreFactorY;
+                    else if (scanYDirections[xx] < 0 && correctDirectionToGoal.Y < 0)//correct direction
+                        score += 1 * scoreFactorY;
+                    else if (scanYDirections[xx] < 0 && correctDirectionToGoal.Y > 0 || scanYDirections[xx] > 0 && correctDirectionToGoal.Y < 0)//oposite dir
+                        score += -1 * scoreFactorY;
+                }
+
+
+                scanScoreWorkspace[xx] = score;
+                if (score > highestScore)
+                {
+                    highestScore = score;
+                    highestScoreIndex = xx;
+                }
+            }
+
+            result.X = scanXDirections[highestScoreIndex];
+            result.Y = scanYDirections[highestScoreIndex];
             return result;
+        }
+
+        private Point DistanceToSlot(GameSlot a, GameSlot b)
+        {
+            return new Point(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
+        }
+
+        private Point DirectionToSlot(GameSlot a, GameSlot b)
+        {
+            return new Point(b.X - a.X, b.Y - a.Y);
+        }
+
+        private Point WrappedDirectionToSlot(GameSlot a, GameSlot b)
+        {
+            int x = b.X - a.X;
+            int y = b.Y - a.Y;
+            if (x > GameWidthInSlots / 2) x -= GameWidthInSlots;
+            if (y > GameHeightInSlots / 2) y -= GameHeightInSlots;
+            if (x < GameWidthInSlots / -2) x += GameWidthInSlots;
+            if (y < GameHeightInSlots / -2) y += GameHeightInSlots;
+            return new Point(x,y);
         }
 
         private void AISimpleTick()
@@ -650,6 +732,7 @@ namespace Pyro
             MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
         }
 
+        //basicly rewritten by AISmartScan(1) - kept for nostalsia sake
         private void AISimplePlanMove()
         {
             Point newDir = new Point (0,0);
@@ -729,19 +812,14 @@ namespace Pyro
                         if (TimeBasedMovement)
                         {
                             if (AIEnabled)
-                                AISimpleTick();
+                                //AISimpleTick();
+                                AISmartTick();
                             else 
                                 MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
                     }
                     break;
             }
-        }
-
-        public void MoveGameSlotContents(int xDif, int yDif, GameSlot slot)
-        {
-            GameSlot newSlot = GetGameSlot(slot.X + xDif, slot.Y + yDif);
-            newSlot.TransferSlotFrom(slot);
         }
 
         private void UpdateScore(ScoredAction action)
