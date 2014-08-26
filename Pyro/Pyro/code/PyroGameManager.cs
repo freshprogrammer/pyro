@@ -15,10 +15,10 @@ namespace Pyro
     {
         //constant control variables
         public const int SlotSize = 32;
-        public static bool trackMoveList = true;//never actualy used
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
+        public static bool CanWalkOnFire = true;
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
@@ -63,6 +63,7 @@ namespace Pyro
         private Random random;
         private int fireDurration;
 
+        private static bool trackMoveList = true;//never actualy used
         private List<string> moveLog = new List<string>(500);
 
         public enum GameState
@@ -251,18 +252,29 @@ namespace Pyro
 
         private void SpawnFire(GameSlot fireSlot)
         {
-            GameObjectManager manager = sSystemRegistry.GameObjectManager;
-            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+            if (fireDurration > 0)
+            {
+                if (fireSlot.Contents == GameSlotStatus.Fire)
+                {
+                    fireSlot.Child.facingDirection = playerSlot.Child.facingDirection;
+                    fireSlot.Child.life = fireDurration;
+                }
+                else
+                {
+                    GameObjectManager manager = sSystemRegistry.GameObjectManager;
+                    PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
 
-            GameObject fireGameObject = factory.SpawnFire(0, 0, fireDurration);
-            manager.Add(fireGameObject);
+                    GameObject fireGameObject = factory.SpawnFire(0, 0, fireDurration);
+                    manager.Add(fireGameObject);
 
-            fireSlot.Setup(GameSlotStatus.Fire, fireGameObject);
+                    fireSlot.Setup(GameSlotStatus.Fire, fireGameObject);
 
-            fireGameObject.SetPosition(GetSlotLocation(fireSlot.Position));
-            fireGameObject.facingDirection = playerSlot.Child.facingDirection;
+                    fireGameObject.SetPosition(GetSlotLocation(fireSlot.Position));
+                    fireGameObject.facingDirection = playerSlot.Child.facingDirection;
 
-            fires.Add(fireSlot);
+                    fires.Add(fireSlot);
+                }
+            }
         }
 
         private void KillFiresBy1()
@@ -412,7 +424,7 @@ namespace Pyro
                 if (AIEnabled)
                 {
                     //on any input tick ai 1
-                    AITick();
+                    AISimpleTick();
                 }
                 else
                 {
@@ -470,7 +482,7 @@ namespace Pyro
             GameSlot newSlot = GetGameSlot(playerSlot.Position,xDif,yDif);
 
             bool spawnNewFuel = false;
-            bool moved = false;
+            bool movePlayer = false;
 
             playerSlot.Child.facingDirection.X = xDif;
             playerSlot.Child.facingDirection.Y = yDif;
@@ -479,30 +491,34 @@ namespace Pyro
             {
                 ConsumeFuel(newSlot);
                 spawnNewFuel = true;
-                moved = true;
+                movePlayer = true;
             }
             KillFiresBy1();//has to be after consume fuel to make sure last peice of trail doesnt move when consuming
             if (newSlot.Contents == GameSlotStatus.Fire)
             {
-                HitFire(newSlot);
-
-                SpawnDeadPlayer(xDif, yDif);
+                movePlayer = HitFire(newSlot);
             }
             else if (newSlot.Contents == GameSlotStatus.Empty)
             {
-                moved = true;
+                movePlayer = true;
             }
 
-            if (moved)
+            if (movePlayer)
             {
-                moveLog.Add("moved (" + oldSlot.X + "," + oldSlot.Y + ") to (" + newSlot.X + "," + newSlot.Y + ")");
+                if(trackMoveList)
+                    moveLog.Add("moved (" + oldSlot.X + "," + oldSlot.Y + ") to (" + newSlot.X + "," + newSlot.Y + ")");
 
                 UpdateScore(ScoredAction.Move);
-                //move player
                 //create fire
-                oldSlot.Contents = GameSlotStatus.Empty;
-                if(fireDurration>0)
-                    SpawnFire(oldSlot);
+                ClearSlot(oldSlot);
+                SpawnFire(oldSlot);
+
+                //actualy move player
+                if (newSlot.Contents == GameSlotStatus.Fire)
+                {
+                    //kill fire it will be recreated
+                    ClearSlot(newSlot);
+                }
                 newSlot.Contents = GameSlotStatus.Player;
                 playerSlot.SetPosition(newSlot.Position);
                 lastMoveDirection.X = xDif;
@@ -513,6 +529,16 @@ namespace Pyro
                 SpawnFuel();
 
             GenFireReport();
+        }
+
+        private void ClearSlot(GameSlot slot)
+        {
+            if (slot.Contents == GameSlotStatus.Fire)
+            {
+                slot.Child.life = 0;
+                ClearDeadFires();
+            }
+            slot.Contents = GameSlotStatus.Empty;//clears player from Slot
         }
 
         private void GenFireReport()
@@ -532,18 +558,16 @@ namespace Pyro
             }
         }
 
-        private void HitFire(GameSlot slot)
+        private bool HitFire(GameSlot slot)
         {
-            bool liveAfterFire = false;
-            if (liveAfterFire)
+            bool continueMoving = true;
+            if(!CanWalkOnFire)
             {
-                slot.Child.life = 0;
-            }
-            else
-            {
+                continueMoving = false;
                 KillPlayer();
                 gameState = GameState.GameOver;
             }
+            return continueMoving;
         }
 
         private void KillPlayer()
@@ -551,6 +575,8 @@ namespace Pyro
             playerSlot.Child.life = 0;
             playerSlot.Child = null;
             playerSlot = null;//This is just a link to the tileSlots
+
+            SpawnDeadPlayer(lastMoveDirection.X, lastMoveDirection.Y);
         }
 
         public bool AdjustFireDurration(int delta)
@@ -601,13 +627,30 @@ namespace Pyro
             else return start;//0
         }
 
-        private void AITick()
+        private void SmartAITick()
         {
-            AIPlanMove();
+            int scanDepth = 5;
+            AIScan(scanDepth);
             MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
         }
 
-        private void AIPlanMove()
+        /// <summary>
+        /// Scan Available moves and return best direction
+        /// </summary>
+        /// <param name="moves"></param>
+        private Point AIScan(int moves)
+        {
+            Point result = new Point(1, 0);
+            return result;
+        }
+
+        private void AISimpleTick()
+        {
+            AISimplePlanMove();
+            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+        }
+
+        private void AISimplePlanMove()
         {
             Point newDir = new Point (0,0);
             GameSlot fuelSlot = GetFuelSlot();
@@ -686,7 +729,7 @@ namespace Pyro
                         if (TimeBasedMovement)
                         {
                             if (AIEnabled)
-                                AITick();
+                                AISimpleTick();
                             else 
                                 MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
@@ -842,7 +885,7 @@ namespace Pyro
 
         public bool IsSafeToWalkOn(int movesFromNow = 0)
         {
-            if (Contents == GameSlotStatus.Fire)
+            if (!PyroGameManager.CanWalkOnFire && Contents == GameSlotStatus.Fire)
             {
                 return Child.life < movesFromNow + 1;
             }
