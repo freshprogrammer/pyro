@@ -18,9 +18,10 @@ namespace Pyro
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
+        public static bool aiZigZag = false;
         public static bool CanWalkOnFire = false;
 
-        private const int FireDefaultLifetime = 2;//start length
+        private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
         private static int BoardYOffset = 0;
         private const int GameWidthInSlots = 20;
@@ -100,6 +101,7 @@ namespace Pyro
             Speed = speed;
             if (AIEnabled)
             {
+                speed = 1;
                 switch (Speed)
                 {
                     default:
@@ -427,7 +429,7 @@ namespace Pyro
                 if (AIEnabled)
                 {
                     //on any input tick ai 1
-                    AISimpleTick();
+                    AITick();
                 }
                 else
                 {
@@ -653,6 +655,7 @@ namespace Pyro
             Point correctDirectionToGoal = WrappedDirectionToSlot(playerSlot,fuelSlot);
 
             scanWorkspace.Clear();
+            string[] scanDirectionNames = { "Right", "Down", "Left", "Up"};
             int[] scanXDirections = { 1, 0, -1, 0 };
             int[] scanYDirections = { 0, 1, 0, -1 };
             int highestScore = Int32.MinValue;
@@ -669,25 +672,28 @@ namespace Pyro
                 }
                 else
                 {
-                    int scoreFactorX = Math.Abs(correctDirectionToGoal.X) + scanXDirections[xx];
-                    int scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + scanYDirections[xx];
 
-                    scoreFactorX = 1;
-                    scoreFactorY = 1;
+                    int scoreFactorX = 1;
+                    int scoreFactorY = 1;
+                    if (aiZigZag)
+                    {
+                        scoreFactorX = Math.Abs(correctDirectionToGoal.X) + scanXDirections[xx];
+                        scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + scanYDirections[xx];
+                    }
                     //calc score
                     score = 0;
                     if (scanXDirections[xx] == correctDirectionToGoal.X && scanXDirections[xx] == 0)//stright line
                         score += 2 * scoreFactorX;
-                    else if (scanXDirections[xx] < 0 && correctDirectionToGoal.X < 0)//correct direction
+                    else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X < 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X > 0))//correct direction
                         score += 1 * scoreFactorX;
-                    else if (scanXDirections[xx] < 0 && correctDirectionToGoal.X > 0 || scanXDirections[xx] > 0 && correctDirectionToGoal.X < 0)//oposite dir
+                    else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X > 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X < 0))//oposite dir
                         score += -1 * scoreFactorX;
 
                     if (scanYDirections[xx] == correctDirectionToGoal.Y && scanYDirections[xx] == 0)//stright line
                         score += 2 * scoreFactorY;
-                    else if (scanYDirections[xx] < 0 && correctDirectionToGoal.Y < 0)//correct direction
+                    else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y < 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y > 0))//correct direction
                         score += 1 * scoreFactorY;
-                    else if (scanYDirections[xx] < 0 && correctDirectionToGoal.Y > 0 || scanYDirections[xx] > 0 && correctDirectionToGoal.Y < 0)//oposite dir
+                    else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y > 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y < 0))//oposite dir
                         score += -1 * scoreFactorY;
                 }
 
@@ -699,6 +705,9 @@ namespace Pyro
                     highestScoreIndex = xx;
                 }
             }
+
+            if (trackMoveList)
+                Console.WriteLine(string.Format("AI Move Scores from ({4},{5}) to ({6},{7}) ({0},{1},{2},{3}) - will Move {8}", scanScoreWorkspace[0], scanScoreWorkspace[1], scanScoreWorkspace[2], scanScoreWorkspace[3], playerSlot.X, playerSlot.Y, fuelSlot.X, fuelSlot.Y, scanDirectionNames[highestScoreIndex]));
 
             result.X = scanXDirections[highestScoreIndex];
             result.Y = scanYDirections[highestScoreIndex];
@@ -771,6 +780,12 @@ namespace Pyro
             }
         }
 
+        private void AITick()
+        {
+            //AISimpleTick();
+            AISmartTick();
+        }
+
         public override void Update(float timeDelta, BaseObject parent)
         {
             if (gameState != GameState.Loading)
@@ -812,8 +827,7 @@ namespace Pyro
                         if (TimeBasedMovement)
                         {
                             if (AIEnabled)
-                                //AISimpleTick();
-                                AISmartTick();
+                                AITick();
                             else 
                                 MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
                         }
