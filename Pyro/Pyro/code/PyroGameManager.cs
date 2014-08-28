@@ -18,8 +18,6 @@ namespace Pyro
         public static bool TimeBasedMovement = true;
         private static bool aiEnabled = true;
         public static bool AIEnabled { set { ClearScoreIntoLastScore(); aiEnabled = value; } get { return aiEnabled; } }
-        public static bool aiZigZag = false;
-        public static bool CanWalkOnFire = false;
 
         private const int FireDefaultLifetime = 0;//start length
         private static int BoardXOffset = 50;
@@ -50,10 +48,22 @@ namespace Pyro
         private FixedSizeArray<GameSlot> tileSlots = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> fires = new FixedSizeArray<GameSlot>(GameSlotCount);
         private FixedSizeArray<GameSlot> deadFires = new FixedSizeArray<GameSlot>(GameSlotCount);
-        private FixedSizeArray<GameSlot> scanWorkspace = new FixedSizeArray<GameSlot>(4);
-        private int[] scanScoreWorkspace = {0,0,0,0};
         private GameSlot playerSlot;
         private GameSlot fuelSlot;
+
+        //AI constant vaiables
+        private const bool trackMoveList = true;
+        private const int MaxScanDepth = 10;
+        private static string[] ScanDirectionNames = {"Right","Down","Left","Up"};
+        private static Point[] ScanDirections = { new Point(1, 0), new Point(0, 1), new Point(-1, 0), new Point(0, -1) };
+        //AI vaiables
+        public static bool CanWalkOnFire = false;
+        private bool aiZigZag = false;
+        private List<string> moveLog = new List<string>(500);
+        //AI workspace
+        private int[] scanScoreWorkspace = new int[4];
+        private FixedSizeArray<GameSlot> scanWorkspace = new FixedSizeArray<GameSlot>(4);
+        private FixedSizeArray<Point> scanPathWorkspace = new FixedSizeArray<Point>(MaxScanDepth);
         
         //input
         private PlayerController lastInput;
@@ -65,9 +75,6 @@ namespace Pyro
         private float activeMoveTickDelay = 0.01f;
         private Random random;
         private int fireDurration;
-
-        private static bool trackMoveList = true;//never actualy used
-        private List<string> moveLog = new List<string>(500);
 
         public enum GameState
         {
@@ -656,15 +663,12 @@ namespace Pyro
             Point correctDirectionToGoal = WrappedDirectionToSlot(playerSlot,fuelSlot);
 
             scanWorkspace.Clear();
-            string[] scanDirectionNames = { "Right", "Down", "Left", "Up"};
-            int[] scanXDirections = { 1, 0, -1, 0 };
-            int[] scanYDirections = { 0, 1, 0, -1 };
             int highestScore = Int32.MinValue;
             int highestScoreIndex = 0;
             int score = 0;
             for (int xx = 0; xx < 4; xx++)
             {
-                GameSlot option = GetGameSlot(playerSlot.Position, scanXDirections[xx], scanYDirections[xx]);
+                GameSlot option = GetGameSlot(playerSlot.Position, ScanDirections[xx].X, ScanDirections[xx].Y);
                 scanWorkspace.Add(option);
 
                 if (!option.IsSafeToWalkOn())
@@ -678,33 +682,33 @@ namespace Pyro
                     int scoreFactorY = 1;
                     if (aiZigZag)
                     {
-                        scoreFactorX = Math.Abs(correctDirectionToGoal.X) + scanXDirections[xx];
-                        scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + scanYDirections[xx];
+                        scoreFactorX = Math.Abs(correctDirectionToGoal.X) + ScanDirections[xx].X;
+                        scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + ScanDirections[xx].Y;
                     }
                     //calc score X score + Y score
                     score = 0;
-                    if (scanXDirections[xx] == correctDirectionToGoal.X && scanXDirections[xx] == 0)//stright line
+                    if (ScanDirections[xx].X == correctDirectionToGoal.X && ScanDirections[xx].X == 0)//stright line
                     {
                         if (option.Contents == GameSlotStatus.Fuel)
                             score += 3;
                         else
                             score += 2 * scoreFactorX;
                     }
-                    else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X < 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X > 0))//correct direction
+                    else if ((ScanDirections[xx].X < 0 && correctDirectionToGoal.X < 0) || (ScanDirections[xx].X > 0 && correctDirectionToGoal.X > 0))//correct direction
                         score += 1 * scoreFactorX;
-                    else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X > 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X < 0))//oposite dir
+                    else if ((ScanDirections[xx].X < 0 && correctDirectionToGoal.X > 0) || (ScanDirections[xx].X > 0 && correctDirectionToGoal.X < 0))//oposite dir
                         score += -1 * scoreFactorX;
 
-                    if (scanYDirections[xx] == correctDirectionToGoal.Y && scanYDirections[xx] == 0)//stright line
+                    if (ScanDirections[xx].Y == correctDirectionToGoal.Y && ScanDirections[xx].Y == 0)//stright line
                     {
                         if (option.Contents == GameSlotStatus.Fuel)
                             score += 3;
                         else
                             score += 2 * scoreFactorY;
                     }
-                    else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y < 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y > 0))//correct direction
+                    else if ((ScanDirections[xx].Y < 0 && correctDirectionToGoal.Y < 0) || (ScanDirections[xx].Y > 0 && correctDirectionToGoal.Y > 0))//correct direction
                         score += 1 * scoreFactorY;
-                    else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y > 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y < 0))//oposite dir
+                    else if ((ScanDirections[xx].Y < 0 && correctDirectionToGoal.Y > 0) || (ScanDirections[xx].Y > 0 && correctDirectionToGoal.Y < 0))//oposite dir
                         score += -1 * scoreFactorY;
                 }
 
@@ -718,16 +722,10 @@ namespace Pyro
             }
 
             if (trackMoveList)
-                Console.WriteLine(string.Format("AI Move Scores from ({4},{5}) to ({6},{7}) ({0},{1},{2},{3}) - will Move {8}", scanScoreWorkspace[0], scanScoreWorkspace[1], scanScoreWorkspace[2], scanScoreWorkspace[3], playerSlot.X, playerSlot.Y, fuelSlot.X, fuelSlot.Y, scanDirectionNames[highestScoreIndex]));
+                Console.WriteLine(string.Format("AI Move Scores from ({4},{5}) to ({6},{7}) ({0},{1},{2},{3}) - will Move {8}", scanScoreWorkspace[0], scanScoreWorkspace[1], scanScoreWorkspace[2], scanScoreWorkspace[3], playerSlot.X, playerSlot.Y, fuelSlot.X, fuelSlot.Y, ScanDirectionNames[highestScoreIndex]));
 
-            result.X = scanXDirections[highestScoreIndex];
-            result.Y = scanYDirections[highestScoreIndex];
+            result = ScanDirections[highestScoreIndex];
             return result;
-        }
-
-        private void AISmartScanGetBestMove()
-        {
-            //calc child score + calc this score
         }
 
         private Point DistanceToSlot(GameSlot a, GameSlot b)
