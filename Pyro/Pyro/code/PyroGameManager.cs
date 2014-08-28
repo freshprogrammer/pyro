@@ -52,6 +52,7 @@ namespace Pyro
         private GameSlot fuelSlot;
 
         //AI constant vaiables
+        private const int fullCrawlValue = 1000000;
         private const bool trackMoveList = true;
         private const int MaxScanDepth = 10;
         private static string[] ScanDirectionNames = {"Right","Down","Left","Up"};
@@ -62,7 +63,6 @@ namespace Pyro
         private List<string> moveLog = new List<string>(500);
         //AI workspace
         private int[] scanScoreWorkspace = new int[4];
-        private FixedSizeArray<GameSlot> scanWorkspace = new FixedSizeArray<GameSlot>(4);
         private FixedSizeArray<Point> scanPathWorkspace = new FixedSizeArray<Point>(MaxScanDepth);
         
         //input
@@ -642,76 +642,29 @@ namespace Pyro
 
         private void AISmartTick()
         {
-            int scanDepth = 5;
-            Point bestMoveDir = AISmartScan(scanDepth);
-            playerSlot.Child.facingDirection.X = bestMoveDir.X;
-            playerSlot.Child.facingDirection.Y = bestMoveDir.Y;
-
-            MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+            int scanDepth = MaxScanDepth;
+            //Point bestMoveDir = AIFindBestPath(playerSlot.Position, scanDepth);
+            //MovePlayer(bestMoveDir.X, bestMoveDir.Y);
         }
 
         /// <summary>
         /// Scan Available moves and return best direction
         /// </summary>
         /// <param name="moves"></param>
-        private Point AISmartScan(int moves)
+        private Point AISimpleMove2()
         {
             Point result = new Point(lastMoveDirection.X, lastMoveDirection.Y);
 
-            Point directionToGoal = DirectionToSlot(playerSlot,fuelSlot);
-            Point distanceToGoal = DistanceToSlot(playerSlot,fuelSlot);
-            Point correctDirectionToGoal = WrappedDirectionToSlot(playerSlot,fuelSlot);
+            //Point directionToGoal = DirectionToSlot(playerSlot,fuelSlot);
+            //Point distanceToGoal = DistanceToSlot(playerSlot,fuelSlot);
+            Point correctDirectionToGoal = WrappedDirectionToSlot(playerSlot.Position, fuelSlot.Position);
 
-            scanWorkspace.Clear();
             int highestScore = Int32.MinValue;
             int highestScoreIndex = 0;
             int score = 0;
             for (int xx = 0; xx < 4; xx++)
             {
-                GameSlot option = GetGameSlot(playerSlot.Position, ScanDirections[xx].X, ScanDirections[xx].Y);
-                scanWorkspace.Add(option);
-
-                if (!option.IsSafeToWalkOn())
-                {
-                    score = Int32.MinValue;//death here
-                }
-                else
-                {
-
-                    int scoreFactorX = 1;
-                    int scoreFactorY = 1;
-                    if (aiZigZag)
-                    {
-                        scoreFactorX = Math.Abs(correctDirectionToGoal.X) + ScanDirections[xx].X;
-                        scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + ScanDirections[xx].Y;
-                    }
-                    //calc score X score + Y score
-                    score = 0;
-                    if (ScanDirections[xx].X == correctDirectionToGoal.X && ScanDirections[xx].X == 0)//stright line
-                    {
-                        if (option.Contents == GameSlotStatus.Fuel)
-                            score += 3;
-                        else
-                            score += 2 * scoreFactorX;
-                    }
-                    else if ((ScanDirections[xx].X < 0 && correctDirectionToGoal.X < 0) || (ScanDirections[xx].X > 0 && correctDirectionToGoal.X > 0))//correct direction
-                        score += 1 * scoreFactorX;
-                    else if ((ScanDirections[xx].X < 0 && correctDirectionToGoal.X > 0) || (ScanDirections[xx].X > 0 && correctDirectionToGoal.X < 0))//oposite dir
-                        score += -1 * scoreFactorX;
-
-                    if (ScanDirections[xx].Y == correctDirectionToGoal.Y && ScanDirections[xx].Y == 0)//stright line
-                    {
-                        if (option.Contents == GameSlotStatus.Fuel)
-                            score += 3;
-                        else
-                            score += 2 * scoreFactorY;
-                    }
-                    else if ((ScanDirections[xx].Y < 0 && correctDirectionToGoal.Y < 0) || (ScanDirections[xx].Y > 0 && correctDirectionToGoal.Y > 0))//correct direction
-                        score += 1 * scoreFactorY;
-                    else if ((ScanDirections[xx].Y < 0 && correctDirectionToGoal.Y > 0) || (ScanDirections[xx].Y > 0 && correctDirectionToGoal.Y < 0))//oposite dir
-                        score += -1 * scoreFactorY;
-                }
-
+                score = AIScoreMove(playerSlot.Position, ScanDirections[xx], correctDirectionToGoal, 1);
 
                 scanScoreWorkspace[xx] = score;
                 if (score > highestScore)
@@ -728,17 +681,96 @@ namespace Pyro
             return result;
         }
 
-        private Point DistanceToSlot(GameSlot a, GameSlot b)
+        private int AIScoreMove(Point startPoint, Point dir, Point correctDirectionToGoal, int movesInFuture)
+        {
+            GameSlot option = GetGameSlot(startPoint, dir.X, dir.Y);
+            
+            int score = 0;
+            if (!option.IsSafeToWalkOn(movesInFuture))
+            {
+                score = Int32.MinValue;//death here
+            }
+            else
+            {
+                int scoreFactorX = 1;
+                int scoreFactorY = 1;
+                if (aiZigZag)
+                {
+                    scoreFactorX = Math.Abs(correctDirectionToGoal.X) + dir.X;
+                    scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + dir.Y;
+                }
+                //calc score X score + Y score
+                score = 0;
+                if (dir.X == correctDirectionToGoal.X && dir.X == 0)//stright line
+                {
+                    if (option.Contents == GameSlotStatus.Fuel)
+                        score += 3;
+                    else
+                        score += 2 * scoreFactorX;
+                }
+                else if ((dir.X < 0 && correctDirectionToGoal.X < 0) || (dir.X > 0 && correctDirectionToGoal.X > 0))//correct direction
+                    score += 1 * scoreFactorX;
+                else if ((dir.X < 0 && correctDirectionToGoal.X > 0) || (dir.X > 0 && correctDirectionToGoal.X < 0))//oposite dir
+                    score += -1 * scoreFactorX;
+
+                if (dir.Y == correctDirectionToGoal.Y && dir.Y == 0)//stright line
+                {
+                    if (option.Contents == GameSlotStatus.Fuel)
+                        score += 3;
+                    else
+                        score += 2 * scoreFactorY;
+                }
+                else if ((dir.Y < 0 && correctDirectionToGoal.Y < 0) || (dir.Y > 0 && correctDirectionToGoal.Y > 0))//correct direction
+                    score += 1 * scoreFactorY;
+                else if ((dir.Y < 0 && correctDirectionToGoal.Y > 0) || (dir.Y > 0 && correctDirectionToGoal.Y < 0))//oposite dir
+                    score += -1 * scoreFactorY;
+            }
+            return score;
+        }
+
+        private int AIFindBestPath(Point start, int depth)
+        {
+            Point result = new Point(lastMoveDirection.X, lastMoveDirection.Y);
+
+            //Point directionToGoal = DirectionToSlot(playerSlot,fuelSlot);
+            //Point distanceToGoal = DistanceToSlot(playerSlot,fuelSlot);
+
+            Point correctDirectionToGoal = WrappedDirectionToSlot(start, fuelSlot.Position);
+
+            int highestScore = Int32.MinValue;
+            int highestScoreIndex = 0;
+            int score = 0;
+            for (int xx = 0; xx < 4; xx++)
+            {
+                //score = AIFindBestPath(start, ScanDirections[xx], correctDirectionToGoal, depth);
+                scanScoreWorkspace[xx] = score;
+                if (score > highestScore)
+                {
+                    highestScore = score;
+                    highestScoreIndex = xx;
+                }
+            }
+
+            if (trackMoveList)
+                Console.WriteLine(string.Format("AI Move Scores from ({4},{5}) to ({6},{7}) ({0},{1},{2},{3}) - will Move {8}", scanScoreWorkspace[0], scanScoreWorkspace[1], scanScoreWorkspace[2], scanScoreWorkspace[3], playerSlot.X, playerSlot.Y, fuelSlot.X, fuelSlot.Y, ScanDirectionNames[highestScoreIndex]));
+
+
+            if (depth == 1)//end of crawl - spike score to promote this path
+                highestScore += fullCrawlValue;
+            return highestScore;
+        }
+
+        private Point DistanceToSlot(Point a, Point b)
         {
             return new Point(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
         }
 
-        private Point DirectionToSlot(GameSlot a, GameSlot b)
+        private Point DirectionToSlot(Point a, Point b)
         {
             return new Point(b.X - a.X, b.Y - a.Y);
         }
 
-        private Point WrappedDirectionToSlot(GameSlot a, GameSlot b)
+        private Point WrappedDirectionToSlot(Point a, Point b)
         {
             int x = b.X - a.X;
             int y = b.Y - a.Y;
@@ -751,7 +783,13 @@ namespace Pyro
 
         private void AISimpleTick()
         {
-            AISimplePlanMove();
+            //no wrap
+            //AISimplePlanMove();
+            //MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
+
+            Point bestMoveDir = AISimpleMove2();
+            playerSlot.Child.facingDirection.X = bestMoveDir.X;
+            playerSlot.Child.facingDirection.Y = bestMoveDir.Y;
             MovePlayer((int)playerSlot.Child.facingDirection.X, (int)playerSlot.Child.facingDirection.Y);
         }
 
@@ -796,8 +834,8 @@ namespace Pyro
 
         private void AITick()
         {
-            //AISimpleTick();
-            AISmartTick();
+            AISimpleTick();
+            //AISmartTick();
         }
 
         public override void Update(float timeDelta, BaseObject parent)
