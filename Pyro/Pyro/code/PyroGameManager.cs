@@ -257,7 +257,8 @@ namespace Pyro
 
         private void SpawnFuel()
         {
-            fuelSlot = GetRandomEmptySlot();
+            const int maxRandomTries = 5;
+            fuelSlot = GetRandomEmptySlot(maxRandomTries);
             if (fuelSlot == null)
             {
                 //game has no empty tiles - shorted tail by 1 to allow space then try again
@@ -364,22 +365,22 @@ namespace Pyro
 
         /* Picks a random tile from the list, then returns first empty tile from there
          */
-        private GameSlot GetRandomEmptySlot()
+        private GameSlot GetRandomEmptySlot(int pureRandomtries=1)
         {
             int max = tileSlots.Count-1;
             int rndStart = random.Next(max);
             int rnd = rndStart;
             
-            int tries = 0;
-            while(tries<=max)
+            int incrementTries = 0;
+            while(incrementTries<=max)
             {
                 if(tileSlots[rnd].Contents==GameSlotStatus.Empty)
                     return tileSlots[rnd];
-                else
+                if (--pureRandomtries <= 0)
                 {
-                    rnd = (++rnd)%(max+1);
+                    rnd = (++rnd) % (max + 1);
+                    incrementTries++;
                 }
-                tries++;
             }
             return null;
         }
@@ -668,7 +669,7 @@ namespace Pyro
 
                 if (!option.IsSafeToWalkOn())
                 {
-                    score = -1000;//death here
+                    score = Int32.MinValue;//death here
                 }
                 else
                 {
@@ -680,17 +681,27 @@ namespace Pyro
                         scoreFactorX = Math.Abs(correctDirectionToGoal.X) + scanXDirections[xx];
                         scoreFactorY = Math.Abs(correctDirectionToGoal.Y) + scanYDirections[xx];
                     }
-                    //calc score
+                    //calc score X score + Y score
                     score = 0;
                     if (scanXDirections[xx] == correctDirectionToGoal.X && scanXDirections[xx] == 0)//stright line
-                        score += 2 * scoreFactorX;
+                    {
+                        if (option.Contents == GameSlotStatus.Fuel)
+                            score += 3;
+                        else
+                            score += 2 * scoreFactorX;
+                    }
                     else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X < 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X > 0))//correct direction
                         score += 1 * scoreFactorX;
                     else if ((scanXDirections[xx] < 0 && correctDirectionToGoal.X > 0) || (scanXDirections[xx] > 0 && correctDirectionToGoal.X < 0))//oposite dir
                         score += -1 * scoreFactorX;
 
                     if (scanYDirections[xx] == correctDirectionToGoal.Y && scanYDirections[xx] == 0)//stright line
-                        score += 2 * scoreFactorY;
+                    {
+                        if (option.Contents == GameSlotStatus.Fuel)
+                            score += 3;
+                        else
+                            score += 2 * scoreFactorY;
+                    }
                     else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y < 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y > 0))//correct direction
                         score += 1 * scoreFactorY;
                     else if ((scanYDirections[xx] < 0 && correctDirectionToGoal.Y > 0) || (scanYDirections[xx] > 0 && correctDirectionToGoal.Y < 0))//oposite dir
@@ -712,6 +723,11 @@ namespace Pyro
             result.X = scanXDirections[highestScoreIndex];
             result.Y = scanYDirections[highestScoreIndex];
             return result;
+        }
+
+        private void AISmartScanGetBestMove()
+        {
+            //calc child score + calc this score
         }
 
         private Point DistanceToSlot(GameSlot a, GameSlot b)
