@@ -39,8 +39,8 @@ namespace Pyro
         private const float timePerDownPress = 0.05f;
 
         //HUD & score variables
-        public static int Speed = 0;
         private static int scoreSinceLastFuel = 0;
+        public static int Speed = 0;
         public static int Score = 0;
         public static int FuelCollected = 0;
         public static int LastScore = 0;
@@ -75,6 +75,7 @@ namespace Pyro
         private Point lastMoveDirection = new Point(0, 0);
 
         //timing and game logic
+        private int gamePauseBeforeReturnToMenu = 5;
         public static GameState gameState;
         private float lastTickTime = -5000;
         private float activeMoveTickDelay = 0.01f;
@@ -611,6 +612,9 @@ namespace Pyro
                 continueMoving = false;
                 KillPlayer();
                 gameState = GameState.GameOver;
+
+                if (!(AIEnabled && AILoop))
+                    ((PyroGame)sSystemRegistry.Game).SendGameEvent(1, gamePauseBeforeReturnToMenu);
             }
             return continueMoving;
         }
@@ -888,7 +892,14 @@ namespace Pyro
                 }
                 else if(gameState==GameState.GameOver)
                 {
-                    //do nothing
+                    //kill fire
+                    //if (gameTime - lastTickTime > activeMoveTickDelay)
+                    //{
+                    //    lastTickTime = gameTime;
+                    //    KillFiresBy1();
+                    //}
+
+
                     if (AIEnabled && AILoop)
                     {
                         if (gameTime - lastTickTime > AIPauseBeforeLoop)

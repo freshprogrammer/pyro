@@ -1,4 +1,4 @@
-//#define DeveleperModeEnabled
+#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -1327,7 +1327,7 @@ namespace Pyro
             switch (key)
             {
                 case Keys.Escape:
-                    if (pressed)
+                    if (pressed && PyroGameManager.gameState!=PyroGameManager.GameState.GameOver)
                         Paused();
                     //dont care about release
                     break;
