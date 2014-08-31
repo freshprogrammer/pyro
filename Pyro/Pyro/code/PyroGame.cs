@@ -1,4 +1,4 @@
-#define DeveleperModeEnabled
+//#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -26,20 +26,21 @@ namespace Pyro
 
         enum FPSMode
         {
+            Production,
             Off,
             On,
             Verbose
         }
 
         //debug vars
-        private bool debugMenuEnabled = true;
-        private bool debugShowVersion = true;
-        private FPSMode debugFPSMode = FPSMode.Verbose;
-        private bool debugShowScoreAndTime = true;
-        private bool debugShowObjectManagerInfo = true;
+        private bool debugMenuEnabled = false;
+        private bool debugShowVersion = false;
+        private FPSMode debugFPSMode = FPSMode.Off;
+        private bool debugShowScoreAndTime = false;
+        private bool debugShowObjectManagerInfo = false;
         private bool debugShowInputInfo = false;
         private bool debugShowVolumeInfo = false;
-        private bool debugShowMemoryInfo = true;
+        private bool debugShowMemoryInfo = false;
         private bool debugShowCameraFollowDistance = false; // not in debug menu
         private SpriteFont debugFont;
 
@@ -112,9 +113,8 @@ namespace Pyro
         //private SoundEffectInstance menuMusicVollumeTest;
         //private int menuMusicVollumeTestID = -1;
         private bool menuWrapSelection = false;
-        private string menuTitle = "Pyro Menu Default";
         private int menuTitleHeight = 150;
-        private float menuTransitionTime = 1;
+        private float menuTransitionTime = 0.75f;
         private Menu pauseMenu;
 
         //System Variables
@@ -127,7 +127,6 @@ namespace Pyro
         private GameObjectFactory objectFactory;
 
         //game vaiables
-        private int newGameLevelNo = 0;
         private int newGameSpeedValue = 1;
 
         public PyroGame()
@@ -313,8 +312,7 @@ namespace Pyro
             menuFont = Content.Load<SpriteFont>("MenuFont");
 
             //background pic
-            backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
-            //backgroundPic = Content.Load<Texture2D>(@"pics\background");
+            backgroundPic = Content.Load<Texture2D>(@"pics\background");
             menuSelectorPic = Content.Load<Texture2D>(@"pics\misc\menuSelector");
 
             //load sounds
@@ -404,13 +402,14 @@ namespace Pyro
         {
             mainMenuTree = new MenuTree(menuFont);
             mainMenuTree.WrapSelection = menuWrapSelection;
-            mainMenuTree.title = menuTitle;
             mainMenuTree.titleHeight = menuTitleHeight;
+            mainMenuTree.title = "";
             mainMenuTree.transitionDuration = menuTransitionTime;
             mainMenuTree.SelectionChangeSound = menuSelectionSound;
             mainMenuTree.EnterActionSound = menuSelectionSound;
             mainMenuTree.BackActionSound = menuSelectionSound;
             mainMenuTree.SetSlector(menuSelectorPic);
+            mainMenuTree.menuColor = Color.Black;
 
 
 #if DeveleperModeEnabled
@@ -498,9 +497,24 @@ namespace Pyro
             vibrationItem.SetName("Vibration CODE", "CODE", BaseObject.sSystemRegistry.VibrationSystem.IsEnabled(PlayerIndex.One) ? "Enabled" : "Disabled");
             Menu optionsMenu = mainMenuTree.CreateMenu(new MenuItem[] { soundItem, vibrationItem, fullScreenItem });//will be populated with updateSoundMenu method - any text here would be duplicated
 
+            //AI menu
+            MenuItem aiStartItem = new MenuItem("Start AI", MenuItem_AIGame);
+            MenuItem gameSpeedItem = new MenuItem();
+            gameSpeedItem.ChangeLeftCallbackAction = MenuItem_GameSpeedDecrease;
+            gameSpeedItem.ChangeRightCallbackAction = MenuItem_GameSpeedIncrease;
+            gameSpeedItem.SetName("Speed: " + code, code, PyroGameManager.GetSpeedName(newGameSpeedValue));
+            MenuItem aiLoopItem = new MenuItem();
+            aiLoopItem.ToggleCallbackAction = MenuItem_AILoopToggle;
+            aiLoopItem.SetName("AI Loop: " + code, code, PyroGameManager.AILoop ? "Continuous" : "Once");
+            Menu aiMenu = mainMenuTree.CreateMenu(new MenuItem[] { aiStartItem, gameSpeedItem, aiLoopItem });
+
+            //New Game menu
+            MenuItem startGameItem = new MenuItem("Start Game", MenuItem_NewGame);
+            Menu newGameMenu = mainMenuTree.CreateMenu(new MenuItem[] { startGameItem, gameSpeedItem });
+
             MenuItem[] mainItems;
-            MenuItem newGameItem = new MenuItem("New Game", MenuItem_NewGame);
-            MenuItem aiGameItem = new MenuItem("AI Game", MenuItem_AIGame);
+            MenuItem newGameItem = new MenuItem("New Game", newGameMenu);
+            MenuItem aiGameItem = new MenuItem("AI Game", aiMenu);
             MenuItem optionsItem = new MenuItem("Options", optionsMenu);
             MenuItem exitItem = new MenuItem("Exit", SystemExit, null);
 
@@ -509,7 +523,7 @@ namespace Pyro
                 mainItems = new MenuItem[] { newGameItem, aiGameItem, optionsItem, exitItem, debugMenuItem };
             else
 #endif
-            mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem };
+            mainItems = new MenuItem[] { newGameItem, aiGameItem, optionsItem, exitItem };
             mainMenu = mainMenuTree.CreateMenu(mainItems);
 
 
@@ -555,33 +569,25 @@ namespace Pyro
             mainMenuTree.SwipeAwayMenu(GotoFirstLevel_Animated);
             //mainMenuTree.SwipeAwayMenu(GotoFirstLevel_NotAnimated);
         }
+
+        private void MenuItem_AILoopToggle(MenuItem parent)
+        {
+            PyroGameManager.AILoop = !PyroGameManager.AILoop;
+            parent.SetNameDetail(PyroGameManager.AILoop ? "Continuous" : "Once");
+        }
         
-        private void MenuItem_NewGameLevelUp(MenuItem parent)
-        {
-            if (newGameLevelNo < 20)
-                newGameLevelNo++;
-            parent.SetNameDetail(newGameLevelNo.ToString());
-        }
-
-        private void MenuItem_NewGameLevelDown(MenuItem parent)
-        {
-            if (newGameLevelNo > 0)
-                newGameLevelNo--;
-            parent.SetNameDetail(newGameLevelNo.ToString());
-        }
-
-        private void MenuItem_NewGameSpeedDown(MenuItem parent)
+        private void MenuItem_GameSpeedDecrease(MenuItem parent)
         {
             newGameSpeedValue--;
             if (newGameSpeedValue < 0)
-                newGameSpeedValue = 2;
+                newGameSpeedValue = 4;
             parent.SetNameDetail(PyroGameManager.GetSpeedName(newGameSpeedValue));
         }
 
-        private void MenuItem_NewGameSpeedUp(MenuItem parent)
+        private void MenuItem_GameSpeedIncrease(MenuItem parent)
         {
             newGameSpeedValue++;
-            if (newGameSpeedValue > 2)
+            if (newGameSpeedValue > 4)
                 newGameSpeedValue = 0;
             parent.SetNameDetail(PyroGameManager.GetSpeedName(newGameSpeedValue));
         }
@@ -807,6 +813,7 @@ namespace Pyro
             settingsFile = new VariablesFile(settingsFilePath, null, false);
             VariableLibrary vars = settingsFile.variables;
 
+#if DeveleperModeEnabled
             //debug variables
             vars.GetVariable("debugMenuEnabled", ref debugMenuEnabled, true);
             vars.GetVariable("debugShowVersion", ref debugShowVersion, true);
@@ -819,6 +826,7 @@ namespace Pyro
             int val = (int)debugFPSMode;
             vars.GetVariable("debugShowFPS", ref val, true);
             debugFPSMode = (FPSMode)val;
+#endif
 
             //graphics fixed step
             vars.GetVariable("FixedRenderSpeed", ref fixedRenderSpeed, true);
@@ -826,7 +834,6 @@ namespace Pyro
             //menu Varibles
             vars.GetVariable("menuTransitionTime", ref menuTransitionTime, true);
             vars.GetVariable("menuTitleHeight", ref menuTitleHeight, true);
-            vars.GetVariable("menuTitle", ref menuTitle, true);
             vars.GetVariable("menuWrapSelection", ref menuWrapSelection, true);
             //vars.getVariable("MovementSpeed",
             //    ref MovableObject.MOVE_RATE, true);
@@ -902,19 +909,6 @@ namespace Pyro
             settingsFile.SaveAs(settingsFilePath);
         }
 
-        public void StartLevel()
-        {
-            //called after loading level completes
-            
-            //center camera on game area
-            BaseObject.sSystemRegistry.CameraSystem.SetFocusPosition(BaseObject.sSystemRegistry.ContextParameters.GameWidth / 2, BaseObject.sSystemRegistry.ContextParameters.GameHeight / 2);
-            BaseObject.sSystemRegistry.CameraSystem.ExternalControl = true;
-
-            pyroManager.StartGame(newGameLevelNo, newGameSpeedValue);
-            
-            gameState = GameApplicationState.MainLoop;
-        }
-
         private void GotoFirstLevel_Animated() { GotoFirstLevel(true); }
         private void GotoFirstLevel_NotAnimated() { GotoFirstLevel(false); }
 
@@ -936,6 +930,19 @@ namespace Pyro
             gameState = GameApplicationState.LoadingLevel;
 
             levelSystem.GotoNextLevel(animated, StartLevel);
+        }
+
+        public void StartLevel()
+        {
+            //called after loading level completes
+
+            //center camera on game area
+            BaseObject.sSystemRegistry.CameraSystem.SetFocusPosition(BaseObject.sSystemRegistry.ContextParameters.GameWidth / 2, BaseObject.sSystemRegistry.ContextParameters.GameHeight / 2);
+            BaseObject.sSystemRegistry.CameraSystem.ExternalControl = true;
+
+            pyroManager.StartGame(newGameSpeedValue);
+
+            gameState = GameApplicationState.MainLoop;
         }
 
         public void ToggleGodMode()
@@ -1464,7 +1471,7 @@ namespace Pyro
             spriteBatch.Begin();
 
             //drawBackground
-            //spriteBatch.Draw(backgroundPic, Vector2.Zero, Color.White);
+            spriteBatch.Draw(backgroundPic, Vector2.Zero, Color.White);
 
             GraphicsDevice.Clear(Color.Black);
 

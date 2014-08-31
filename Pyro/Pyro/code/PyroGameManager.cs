@@ -29,9 +29,12 @@ namespace Pyro
         private const float playerMoveTickDelay_Low = 0.20f;
         private const float playerMoveTickDelay_Med = 0.15f;
         private const float playerMoveTickDelay_High = 0.10f;
-        private const float aiMoveTickDelay_Low = 0.05f;
-        private const float aiMoveTickDelay_Med = 0.01f;
-        private const float aiMoveTickDelay_High = 0.004f;
+        private const float playerMoveTickDelay_Crazy = 0.5f;
+        private const float aiMoveTickDelay_Low = 0.25f;
+        private const float aiMoveTickDelay_Med = 0.11f;
+        private const float aiMoveTickDelay_High = 0.03f;
+        private const float aiMoveTickDelay_Crazy = 0.01f;
+        private const float aiMoveTickDelay_Max = 0.001f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
 
@@ -52,6 +55,8 @@ namespace Pyro
         private GameSlot fuelSlot;
 
         //AI constant vaiables
+        public static bool AILoop = true;
+        private static int AIPauseBeforeLoop = 2;
         private const int fullCrawlValue = 1000000;
         private const bool trackMoveList = true;
         private const int MaxScanDepth = 10;
@@ -101,7 +106,7 @@ namespace Pyro
             gameState = GameState.Loading;
         }
 
-        public void StartGame(int level, int speed)
+        public void StartGame(int speed)
         {
             Reset();
 
@@ -115,6 +120,8 @@ namespace Pyro
                     case 0: activeMoveTickDelay = aiMoveTickDelay_Low; break;
                     case 1: activeMoveTickDelay = aiMoveTickDelay_Med; break;
                     case 2: activeMoveTickDelay = aiMoveTickDelay_High; break;
+                    case 3: activeMoveTickDelay = aiMoveTickDelay_Crazy; break;
+                    case 4: activeMoveTickDelay = aiMoveTickDelay_Max; break;
                 }
             }
             else
@@ -125,10 +132,13 @@ namespace Pyro
                     case 0: activeMoveTickDelay = playerMoveTickDelay_Low; break;
                     case 1: activeMoveTickDelay = playerMoveTickDelay_Med; break;
                     case 2: activeMoveTickDelay = playerMoveTickDelay_High; break;
+                    case 3: activeMoveTickDelay = aiMoveTickDelay_Crazy; break;
+                    case 4: activeMoveTickDelay = aiMoveTickDelay_Max; break;
                 }
             }
             //totalPlayTime = new TimeSpan();
 
+            SpawnBackground();
             StartLevel();
         }
 
@@ -143,6 +153,7 @@ namespace Pyro
 
         public override void Reset()
         {
+            sSystemRegistry.GameObjectManager.DestroyAll();
             ClearScoreIntoLastScore();
             FuelCollected = 0;
             scoreSinceLastFuel = 0;
@@ -160,6 +171,19 @@ namespace Pyro
             lastInput = new PlayerController();
             playerSlot = new GameSlot(-1, -1);
             playerSlot.Contents = GameSlotStatus.Player;
+        }
+
+        public static string GetSpeedName(int s)
+        {
+            switch (s)
+            {
+                default: return "Unknown";
+                case 0: return "Slow";
+                case 1: return "Medium";
+                case 2: return "Fast";
+                case 3: return "Crazy";
+                case 4: return "Max";
+            }
         }
 
         private static void ClearScoreIntoLastScore()
@@ -215,6 +239,14 @@ namespace Pyro
             return result;
         }
 
+        private void SpawnBackground()
+        {
+            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
+            GameObjectManager manager = sSystemRegistry.GameObjectManager;
+
+            manager.Add(factory.SpawnBackgroundPlate(0, 0));
+        }
+
         public void SpawnLevelTiles()
         {
             foreach( GameSlot slot in tileSlots)
@@ -250,7 +282,7 @@ namespace Pyro
 
             //spawn at center
             Point gameCenter = new Point(GameWidthInSlots / 2, GameHeightInSlots / 2);
-            gameCenter = new Point(19,19);
+            //gameCenter = new Point(19,19);//test wrap
             playerSlot.SetPosition(gameCenter.X,gameCenter.Y);
             playerSlot.Setup(GameSlotStatus.Player, playerGameObject);
             GetGameSlot(gameCenter).Setup(GameSlotStatus.Player, null);
@@ -642,7 +674,7 @@ namespace Pyro
 
         private void AISmartTick()
         {
-            int scanDepth = MaxScanDepth;
+            //int scanDepth = MaxScanDepth;
             //Point bestMoveDir = AIFindBestPath(playerSlot.Position, scanDepth);
             //MovePlayer(bestMoveDir.X, bestMoveDir.Y);
         }
@@ -857,6 +889,13 @@ namespace Pyro
                 else if(gameState==GameState.GameOver)
                 {
                     //do nothing
+                    if (AIEnabled && AILoop)
+                    {
+                        if (gameTime - lastTickTime > AIPauseBeforeLoop)
+                        {
+                            StartGame(Speed);
+                        }
+                    }
                 }
             }
         }
@@ -903,17 +942,6 @@ namespace Pyro
                     scoreSinceLastFuel = 0;
                     Score+=2*FuelCollected;
                     break;
-            }
-        }
-
-        public static string GetSpeedName(int speed)
-        {
-            switch (speed)
-            {
-                default:
-                case 0: return "Low";
-                case 1: return "Med";
-                case 2: return "High";
             }
         }
 
