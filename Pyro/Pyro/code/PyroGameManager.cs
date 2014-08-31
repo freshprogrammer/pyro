@@ -34,7 +34,7 @@ namespace Pyro
         private const float aiMoveTickDelay_Med = 0.11f;
         private const float aiMoveTickDelay_High = 0.03f;
         private const float aiMoveTickDelay_Crazy = 0.01f;
-        private const float aiMoveTickDelay_Max = 0.000f;
+        private const float aiMoveTickDelay_Max = 0.001f;
         private const float gravityTickDelay = 0.10f;
         private const float timePerDownPress = 0.05f;
 

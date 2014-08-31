@@ -1,4 +1,4 @@
-#define DeveleperModeEnabled
+//#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -26,20 +26,21 @@ namespace Pyro
 
         enum FPSMode
         {
+            Production,
             Off,
             On,
             Verbose
         }
 
         //debug vars
-        private bool debugMenuEnabled = true;
-        private bool debugShowVersion = true;
-        private FPSMode debugFPSMode = FPSMode.Verbose;
-        private bool debugShowScoreAndTime = true;
-        private bool debugShowObjectManagerInfo = true;
+        private bool debugMenuEnabled = false;
+        private bool debugShowVersion = false;
+        private FPSMode debugFPSMode = FPSMode.Off;
+        private bool debugShowScoreAndTime = false;
+        private bool debugShowObjectManagerInfo = false;
         private bool debugShowInputInfo = false;
         private bool debugShowVolumeInfo = false;
-        private bool debugShowMemoryInfo = true;
+        private bool debugShowMemoryInfo = false;
         private bool debugShowCameraFollowDistance = false; // not in debug menu
         private SpriteFont debugFont;
 
@@ -523,7 +524,7 @@ namespace Pyro
                 mainItems = new MenuItem[] { newGameItem, aiGameItem, optionsItem, exitItem, debugMenuItem };
             else
 #endif
-            mainItems = new MenuItem[] { newGameItem, optionsItem, exitItem };
+            mainItems = new MenuItem[] { newGameItem, aiGameItem, optionsItem, exitItem };
             mainMenu = mainMenuTree.CreateMenu(mainItems);
 
 
@@ -813,6 +814,7 @@ namespace Pyro
             settingsFile = new VariablesFile(settingsFilePath, null, false);
             VariableLibrary vars = settingsFile.variables;
 
+#if DeveleperModeEnabled
             //debug variables
             vars.GetVariable("debugMenuEnabled", ref debugMenuEnabled, true);
             vars.GetVariable("debugShowVersion", ref debugShowVersion, true);
@@ -825,6 +827,7 @@ namespace Pyro
             int val = (int)debugFPSMode;
             vars.GetVariable("debugShowFPS", ref val, true);
             debugFPSMode = (FPSMode)val;
+#endif
 
             //graphics fixed step
             vars.GetVariable("FixedRenderSpeed", ref fixedRenderSpeed, true);
