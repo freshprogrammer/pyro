@@ -46,10 +46,7 @@ namespace Pyro
 
         public override void SpawnObjects()
         {
-            PyroGameObjectFactory factory = (PyroGameObjectFactory)sSystemRegistry.GameObjectFactory;
-            GameObjectManager manager = sSystemRegistry.GameObjectManager;
-
-            manager.Add(factory.SpawnBackgroundPlate(0, 0));
+            //nothing here
         }
     }
 }
