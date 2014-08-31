@@ -99,11 +99,6 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
-    <Compile Include="pics\misc\cherry-wood_small.jpg">
-      <Name>cherry-wood_small</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
     <Compile Include="pics\misc\doomhud.png">
       <Name>doomhud</Name>
       <Importer>TextureImporter</Importer>
@@ -146,11 +141,6 @@
     </Compile>
     <Compile Include="pics\misc\retro8bitfonts_original.png">
       <Name>retro8bitfonts_original</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="pics\misc\stars.jpg">
-      <Name>stars</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -336,6 +326,13 @@
   <ItemGroup>
     <Compile Include="pics\fuel.png">
       <Name>fuel</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="pics\background.jpg">
+      <Name>background</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

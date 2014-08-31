@@ -113,7 +113,6 @@ namespace Pyro
         //private SoundEffectInstance menuMusicVollumeTest;
         //private int menuMusicVollumeTestID = -1;
         private bool menuWrapSelection = false;
-        private string menuTitle = "Pyro Menu Default";
         private int menuTitleHeight = 150;
         private float menuTransitionTime = 0.75f;
         private Menu pauseMenu;
@@ -313,8 +312,7 @@ namespace Pyro
             menuFont = Content.Load<SpriteFont>("MenuFont");
 
             //background pic
-            backgroundPic = Content.Load<Texture2D>(@"pics\misc\stars");
-            //backgroundPic = Content.Load<Texture2D>(@"pics\background");
+            backgroundPic = Content.Load<Texture2D>(@"pics\background");
             menuSelectorPic = Content.Load<Texture2D>(@"pics\misc\menuSelector");
 
             //load sounds
@@ -404,13 +402,14 @@ namespace Pyro
         {
             mainMenuTree = new MenuTree(menuFont);
             mainMenuTree.WrapSelection = menuWrapSelection;
-            mainMenuTree.title = menuTitle;
             mainMenuTree.titleHeight = menuTitleHeight;
+            mainMenuTree.title = "";
             mainMenuTree.transitionDuration = menuTransitionTime;
             mainMenuTree.SelectionChangeSound = menuSelectionSound;
             mainMenuTree.EnterActionSound = menuSelectionSound;
             mainMenuTree.BackActionSound = menuSelectionSound;
             mainMenuTree.SetSlector(menuSelectorPic);
+            mainMenuTree.menuColor = Color.Black;
 
 
 #if DeveleperModeEnabled
@@ -835,7 +834,6 @@ namespace Pyro
             //menu Varibles
             vars.GetVariable("menuTransitionTime", ref menuTransitionTime, true);
             vars.GetVariable("menuTitleHeight", ref menuTitleHeight, true);
-            vars.GetVariable("menuTitle", ref menuTitle, true);
             vars.GetVariable("menuWrapSelection", ref menuWrapSelection, true);
             //vars.getVariable("MovementSpeed",
             //    ref MovableObject.MOVE_RATE, true);
@@ -1473,7 +1471,7 @@ namespace Pyro
             spriteBatch.Begin();
 
             //drawBackground
-            //spriteBatch.Draw(backgroundPic, Vector2.Zero, Color.White);
+            spriteBatch.Draw(backgroundPic, Vector2.Zero, Color.White);
 
             GraphicsDevice.Clear(Color.Black);
 
