@@ -791,9 +791,7 @@ namespace Pyro
 
         private void MenuItem_ExitToMainMenu()
         {
-            {
-                GotoMainMenu();
-            }
+            GotoMainMenu();
         }
 
         private void Menu_ClearCurrentMenu()
@@ -1327,8 +1325,13 @@ namespace Pyro
             switch (key)
             {
                 case Keys.Escape:
-                    if (pressed && PyroGameManager.gameState!=PyroGameManager.GameState.GameOver)
-                        Paused();
+                    if (pressed)
+                    {
+                        if (PyroGameManager.gameState == PyroGameManager.GameState.GameOver)
+                            GotoMainMenu();
+                        else
+                            Paused();
+                    }
                     //dont care about release
                     break;
 #if DeveleperModeEnabled

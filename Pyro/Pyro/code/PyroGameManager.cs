@@ -612,9 +612,6 @@ namespace Pyro
                 continueMoving = false;
                 KillPlayer();
                 gameState = GameState.GameOver;
-
-                if (!(AIEnabled && AILoop))
-                    ((PyroGame)sSystemRegistry.Game).SendGameEvent(1, gamePauseBeforeReturnToMenu);
             }
             return continueMoving;
         }
@@ -892,14 +889,6 @@ namespace Pyro
                 }
                 else if(gameState==GameState.GameOver)
                 {
-                    //kill fire
-                    //if (gameTime - lastTickTime > activeMoveTickDelay)
-                    //{
-                    //    lastTickTime = gameTime;
-                    //    KillFiresBy1();
-                    //}
-
-
                     if (AIEnabled && AILoop)
                     {
                         if (gameTime - lastTickTime > AIPauseBeforeLoop)
