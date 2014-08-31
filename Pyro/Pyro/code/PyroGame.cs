@@ -1328,7 +1328,7 @@ namespace Pyro
                     if (pressed)
                     {
                         if (PyroGameManager.gameState == PyroGameManager.GameState.GameOver)
-                            GotoMainMenu();
+                            pyroManager.RunFinalAnimation();
                         else
                             Paused();
                     }

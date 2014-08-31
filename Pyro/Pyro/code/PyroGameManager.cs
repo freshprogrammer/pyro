@@ -893,8 +893,7 @@ namespace Pyro
                     {
                         if (gameTime - lastTickTime > AIPauseBeforeLoop)
                         {
-                            activeMoveTickDelay = aiMoveTickDelay_High;
-                            gameState = GameState.FinalAnimation;
+                            RunFinalAnimation();
                         }
                     }
                 }
@@ -906,10 +905,21 @@ namespace Pyro
                         if (fires.Count > 0)
                             KillFiresBy1();
                         else
-                            StartGame(Speed);
+                        {
+                            if (AIEnabled && AILoop)
+                                StartGame(Speed);
+                            else
+                                ((PyroGame)sSystemRegistry.Game).SendGameEvent(1, 0);
+                        }
                     }
                 }
             }
+        }
+
+        public void RunFinalAnimation()
+        {
+            activeMoveTickDelay = aiMoveTickDelay_High;
+            gameState = GameState.FinalAnimation;
         }
 
         public void Tick()
