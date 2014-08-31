@@ -13,6 +13,9 @@ namespace Pyro
 {
     class PyroGameManager : ObjectManager
     {
+        public static bool AILoop = true;
+        private static int AIPauseBeforeLoop = 2000;
+
         //constant control variables
         public const int SlotSize = 32;
         public static bool TimeBasedMovement = true;
@@ -821,6 +824,10 @@ namespace Pyro
                 else if(gameState==GameState.GameOver)
                 {
                     //do nothing
+                    if (AIEnabled && AILoop)
+                    {
+                        Reset();
+                    }
                 }
             }
         }

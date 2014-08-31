@@ -498,9 +498,20 @@ namespace Pyro
             vibrationItem.SetName("Vibration CODE", "CODE", BaseObject.sSystemRegistry.VibrationSystem.IsEnabled(PlayerIndex.One) ? "Enabled" : "Disabled");
             Menu optionsMenu = mainMenuTree.CreateMenu(new MenuItem[] { soundItem, vibrationItem, fullScreenItem });//will be populated with updateSoundMenu method - any text here would be duplicated
 
+            //AI menu
+            MenuItem aiStartItem = new MenuItem("Start AI", MenuItem_AIGame);
+            //MenuItem aiSpeedOption = new MenuItem();
+            //debugShowFpsItem.ToggleCallbackAction = MenuItem_Debug_ShowFPS_ChangeUp;
+            //debugShowFpsItem.ChangeLeftCallbackAction = MenuItem_Debug_ShowFPS_ChangeDown;
+            //debugShowFpsItem.SetName("FPS Mode: CODE", "CODE", "" + debugFPSMode); 
+            MenuItem aiLoopItem = new MenuItem();
+            aiLoopItem.ToggleCallbackAction = MenuItem_AILoopToggle;
+            aiLoopItem.SetName("AI Loop: " + code, code, "Temp");
+            Menu aiMenu = mainMenuTree.CreateMenu(new MenuItem[] { aiStartItem, aiLoopItem });//will be populated with updateSoundMenu method - any text here would be duplicated
+
             MenuItem[] mainItems;
             MenuItem newGameItem = new MenuItem("New Game", MenuItem_NewGame);
-            MenuItem aiGameItem = new MenuItem("AI Game", MenuItem_AIGame);
+            MenuItem aiGameItem = new MenuItem("AI Game", aiMenu);
             MenuItem optionsItem = new MenuItem("Options", optionsMenu);
             MenuItem exitItem = new MenuItem("Exit", SystemExit, null);
 
@@ -554,6 +565,11 @@ namespace Pyro
             PyroGameManager.AIEnabled = true;
             mainMenuTree.SwipeAwayMenu(GotoFirstLevel_Animated);
             //mainMenuTree.SwipeAwayMenu(GotoFirstLevel_NotAnimated);
+        }
+
+        private void MenuItem_AILoopToggle(MenuItem Parent)
+        {
+            PyroGameManager.AILoop = !PyroGameManager.AILoop;
         }
         
         private void MenuItem_NewGameLevelUp(MenuItem parent)
