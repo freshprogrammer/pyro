@@ -56,7 +56,7 @@ namespace Pyro
 
         //AI constant vaiables
         public static bool AILoop = true;
-        private static int AIPauseBeforeLoop = 2;
+        private const int AIPauseBeforeLoop = 2;
         private const int fullCrawlValue = 1000000;
         private const bool trackMoveList = true;
         private const int MaxScanDepth = 10;
@@ -75,7 +75,6 @@ namespace Pyro
         private Point lastMoveDirection = new Point(0, 0);
 
         //timing and game logic
-        private int gamePauseBeforeReturnToMenu = 5;
         public static GameState gameState;
         private float lastTickTime = -5000;
         private float activeMoveTickDelay = 0.01f;
@@ -87,6 +86,7 @@ namespace Pyro
             Loading,
             PlayerMoving,
             GameOver,
+            FinalAnimation,
         }
 
         public PyroGameManager()
@@ -887,14 +887,26 @@ namespace Pyro
                         Tick();
                     }
                 }
-                else if(gameState==GameState.GameOver)
+                else if (gameState == GameState.GameOver)
                 {
                     if (AIEnabled && AILoop)
                     {
                         if (gameTime - lastTickTime > AIPauseBeforeLoop)
                         {
-                            StartGame(Speed);
+                            activeMoveTickDelay = aiMoveTickDelay_High;
+                            gameState = GameState.FinalAnimation;
                         }
+                    }
+                }
+                else if (gameState == GameState.FinalAnimation)
+                {
+                    if (gameTime - lastTickTime > activeMoveTickDelay)
+                    {
+                        lastTickTime = gameTime;
+                        if (fires.Count > 0)
+                            KillFiresBy1();
+                        else
+                            StartGame(Speed);
                     }
                 }
             }
