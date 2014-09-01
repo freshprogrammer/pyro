@@ -1,12 +1,8 @@
-## Pyro v0.8
+## Pyro v1.0-dev
 ##  By Fresh
 
 ### How To Play
 Navigate your player to gather as much fuel as possible while avoiding the trail of fire left behind you.
-
-### New Features & Changes
-- Added fire fade animation after game over. Automatically runs during AI loop.
-- Changed game over logic to wait for Esc key press.
 
 ### Controls (supports 360 controller)
 - Arrow Keys, WASD - Move player, navigate Menu
