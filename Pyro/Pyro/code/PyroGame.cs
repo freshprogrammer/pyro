@@ -1,4 +1,4 @@
-//#define DeveleperModeEnabled
+#define DeveleperModeEnabled
 
 using Archives;
 using System;
@@ -14,7 +14,7 @@ using Microsoft.Xna.Framework.Media;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Pyro
+namespace Pyro 
 {
     /// <summary>
     /// This is the main type for your game
@@ -26,14 +26,13 @@ namespace Pyro
 
         enum FPSMode
         {
-            Production,
             Off,
             On,
             Verbose
         }
 
         //debug vars
-        private bool debugMenuEnabled = false;
+        private bool debugMenuEnabled = true;
         private bool debugShowVersion = false;
         private FPSMode debugFPSMode = FPSMode.Off;
         private bool debugShowScoreAndTime = false;
@@ -444,11 +443,8 @@ namespace Pyro
                 MenuItem debugFixedStepItem = new MenuItem(null);
                 debugFixedStepItem.ToggleCallbackAction = MenuItem_Debug_FixedStep;
                 debugFixedStepItem.SetName("Fixed Render Speed: CODE", "CODE", fixedRenderSpeed ? "Enabled" : "Disabled");
-                MenuItem debugCameraBoundItem = new MenuItem();
-                debugCameraBoundItem.ToggleCallbackAction = MenuItem_Debug_CameraBound;
-                debugCameraBoundItem.SetName("Camera Bound To Level: CODE", "CODE", BaseObject.sSystemRegistry.CameraSystem.BoundToLevel ? "Enabled" : "Disabled");
                 MenuItem debugInfoItem = new MenuItem("Info", debugInfoMenu);
-                Menu debugMenu = mainMenuTree.CreateMenu(new MenuItem[] { debugInfoItem, debugFixedStepItem, debugCameraBoundItem });
+                Menu debugMenu = mainMenuTree.CreateMenu(new MenuItem[] { debugInfoItem, debugFixedStepItem });
 
                 //this is the item to add to other menus
                 debugMenuItem = new MenuItem("Debug", debugMenu);
@@ -795,9 +791,7 @@ namespace Pyro
 
         private void MenuItem_ExitToMainMenu()
         {
-            {
-                GotoMainMenu();
-            }
+            GotoMainMenu();
         }
 
         private void Menu_ClearCurrentMenu()
@@ -813,9 +807,9 @@ namespace Pyro
             settingsFile = new VariablesFile(settingsFilePath, null, false);
             VariableLibrary vars = settingsFile.variables;
 
+            vars.GetVariable("debugMenuEnabled", ref debugMenuEnabled, true);
 #if DeveleperModeEnabled
             //debug variables
-            vars.GetVariable("debugMenuEnabled", ref debugMenuEnabled, true);
             vars.GetVariable("debugShowVersion", ref debugShowVersion, true);
             vars.GetVariable("debugShowScoreAndTime", ref debugShowScoreAndTime, true);
             vars.GetVariable("debugShowInputInfo", ref debugShowInputInfo, true);
@@ -1332,7 +1326,12 @@ namespace Pyro
             {
                 case Keys.Escape:
                     if (pressed)
-                        Paused();
+                    {
+                        if (PyroGameManager.gameState == PyroGameManager.GameState.GameOver)
+                            pyroManager.RunFinalAnimation();
+                        else
+                            Paused();
+                    }
                     //dont care about release
                     break;
 #if DeveleperModeEnabled
@@ -1530,7 +1529,7 @@ namespace Pyro
             }
 
             int fontSize = 15;
-            Color DebugColor = Color.Red;
+            Color DebugColor = Color.White;
             Color FPSGoodColor = Color.LimeGreen;
             Color FPSWarningColor = Color.Orange;
             Color FPSBadColor = Color.Red;
@@ -1560,6 +1559,7 @@ namespace Pyro
                     string fpsFormat = "F1";
                     string seondFormat = "F2";
                     string miliseondFormat = "F2";
+                    data.Add("GameState=" + gameState);
                     data.Add("FPS=" + profileLastFPS.ToString(fpsFormat) + "  (" + lastProfileTotalFrames + "/" + (lastProfileTotalTime / 1000).ToString(seondFormat) + "s)");
                     data.Add("Frame#" + frameNo);
 
@@ -1581,10 +1581,10 @@ namespace Pyro
                 else if (debugFPSMode == FPSMode.On)
                 {
                     string fpsFormat = "F2";
+                    data.Add("GameState=" + gameState);
                     data.Add("FPS:" + profileLastFPS.ToString(fpsFormat));
                 }
 
-                data.Add("GameState=" + gameState);
 
                 if (profileLastFPS < fpsBad)
                     badFPSWarning = true;

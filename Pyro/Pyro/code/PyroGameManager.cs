@@ -39,8 +39,8 @@ namespace Pyro
         private const float timePerDownPress = 0.05f;
 
         //HUD & score variables
-        public static int Speed = 0;
         private static int scoreSinceLastFuel = 0;
+        public static int Speed = 0;
         public static int Score = 0;
         public static int FuelCollected = 0;
         public static int LastScore = 0;
@@ -56,7 +56,7 @@ namespace Pyro
 
         //AI constant vaiables
         public static bool AILoop = true;
-        private static int AIPauseBeforeLoop = 2;
+        private const int AIPauseBeforeLoop = 2;
         private const int fullCrawlValue = 1000000;
         private const bool trackMoveList = true;
         private const int MaxScanDepth = 10;
@@ -86,6 +86,7 @@ namespace Pyro
             Loading,
             PlayerMoving,
             GameOver,
+            FinalAnimation,
         }
 
         public PyroGameManager()
@@ -886,18 +887,39 @@ namespace Pyro
                         Tick();
                     }
                 }
-                else if(gameState==GameState.GameOver)
+                else if (gameState == GameState.GameOver)
                 {
-                    //do nothing
                     if (AIEnabled && AILoop)
                     {
                         if (gameTime - lastTickTime > AIPauseBeforeLoop)
                         {
-                            StartGame(Speed);
+                            RunFinalAnimation();
+                        }
+                    }
+                }
+                else if (gameState == GameState.FinalAnimation)
+                {
+                    if (gameTime - lastTickTime > activeMoveTickDelay)
+                    {
+                        lastTickTime = gameTime;
+                        if (fires.Count > 0)
+                            KillFiresBy1();
+                        else
+                        {
+                            if (AIEnabled && AILoop)
+                                StartGame(Speed);
+                            else
+                                ((PyroGame)sSystemRegistry.Game).SendGameEvent(1, 0);
                         }
                     }
                 }
             }
+        }
+
+        public void RunFinalAnimation()
+        {
+            activeMoveTickDelay = aiMoveTickDelay_High;
+            gameState = GameState.FinalAnimation;
         }
 
         public void Tick()
