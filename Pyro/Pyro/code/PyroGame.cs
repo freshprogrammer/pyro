@@ -1,4 +1,4 @@
-#define DeveleperModeEnabled
+//#define DeveleperModeEnabled
 
 using Archives;
 using System;
